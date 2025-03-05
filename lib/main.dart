@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:major_project/pages/my_store_page.dart';
 import 'package:major_project/pages/order_details_page.dart';
 import 'package:major_project/pages/orders_pages.dart';
+import 'package:major_project/pages/product_details_page.dart';
 import 'package:major_project/pages/product_pages.dart';
 
 void main() {
@@ -30,7 +31,7 @@ class MyApp extends StatelessWidget {
         ),
         //define theme for input filed
         inputDecorationTheme: InputDecorationTheme(
-          contentPadding: EdgeInsets.symmetric(horizontal: 1, vertical: 2),
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 2),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
             borderSide: BorderSide.none,
@@ -92,6 +93,7 @@ class MyApp extends StatelessWidget {
         // Button Theme
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
+            minimumSize: Size.fromHeight(50),
             backgroundColor: Color(0xFF446785),
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
@@ -108,7 +110,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      home: OrdersPages(),
+      home: ProductDetailsPage(),
       routes: {
         '/orders-details': (context) => OrderDetailsPage(),
         '/mystore': (context) => MyStorePage(),

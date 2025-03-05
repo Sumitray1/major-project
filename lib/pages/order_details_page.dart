@@ -100,9 +100,7 @@ class OrderDetailsPage extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () {},
                   child: Text("Update Status"),
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: Size.fromHeight(50),
-                  ),
+                  style: ElevatedButton.styleFrom(),
                 ),
               ),
             ],
