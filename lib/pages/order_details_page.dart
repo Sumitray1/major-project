@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:major_project/Widgets/order_dropDown_Button.dart';
+import 'package:major_project/Widgets/order_dropdown_Button.dart';
 
 class OrderDetailsPage extends StatelessWidget {
   const OrderDetailsPage({super.key});
@@ -27,13 +27,13 @@ class OrderDetailsPage extends StatelessWidget {
           Container(
             height: 212,
             decoration: ShapeDecoration(
-              color: Colors.black.withOpacity(0.20000000298023224),
+              color: Colors.black.withValues(alpha: 0.2),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
               ),
             ),
             child: Image.asset(
-              'assets/images/order.png',
+              'assets/images/shoes11.png',
               fit: BoxFit.fitHeight,
             ),
           ),

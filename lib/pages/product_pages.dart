@@ -69,7 +69,7 @@ class ProductPages extends StatelessWidget {
             style: Theme.of(context).textTheme.titleSmall,
           ),
           SizedBox(height: 14),
-          Container(
+          SizedBox(
             height: 40,
             child: ListView(
               scrollDirection: Axis.horizontal,
@@ -124,10 +124,12 @@ class ProductPages extends StatelessWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        child: Icon(Icons.add, color: Colors.white),
+        onPressed: () {
+          Navigator.pushNamed(context, '/product-details');
+        },
         backgroundColor: Theme.of(context).primaryColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+        child: Icon(Icons.add, color: Colors.white),
       ),
     );
   }

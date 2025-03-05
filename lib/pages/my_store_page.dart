@@ -60,7 +60,7 @@ class MyStorePage extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Container(
+                SizedBox(
                   width: 77,
                   height: 73,
                   child: Image.asset('assets/images/logo.png'),

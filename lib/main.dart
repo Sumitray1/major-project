@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:major_project/pages/dashboard_page.dart';
+import 'package:major_project/pages/get_started_page,dart.dart';
 import 'package:major_project/pages/my_store_page.dart';
 import 'package:major_project/pages/order_details_page.dart';
 import 'package:major_project/pages/orders_pages.dart';
+import 'package:major_project/pages/otp_page.dart';
 import 'package:major_project/pages/product_details_page.dart';
 import 'package:major_project/pages/product_pages.dart';
+import 'package:major_project/pages/singup_page.dart';
 
 void main() {
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -20,7 +26,8 @@ class MyApp extends StatelessWidget {
 
         // Define AppBar Theme
         appBarTheme: AppBarTheme(
-          backgroundColor: WidgetStateColor.transparent,
+          iconTheme: IconThemeData(color: Color(0xFF446785)),
+          backgroundColor: Colors.transparent,
           titleTextStyle: TextStyle(
             color: Color(0xFF446785),
             fontSize: 20,
@@ -29,7 +36,11 @@ class MyApp extends StatelessWidget {
             height: 1.40,
           ),
         ),
-        //define theme for input filed
+        //buttom navigation
+        bottomNavigationBarTheme: BottomNavigationBarThemeData(
+          backgroundColor: Colors.transparent,
+        ),
+        //define theme for input field
         inputDecorationTheme: InputDecorationTheme(
           contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 2),
           border: OutlineInputBorder(
@@ -37,7 +48,6 @@ class MyApp extends StatelessWidget {
             borderSide: BorderSide.none,
           ),
           prefixIconColor: Color(0xFF767676),
-
           hintStyle: TextStyle(
             color: Color(0xFF767676),
             fontSize: 16,
@@ -89,7 +99,6 @@ class MyApp extends StatelessWidget {
             letterSpacing: 1.56,
           ),
         ),
-
         // Button Theme
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
@@ -99,7 +108,6 @@ class MyApp extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(15),
             ),
-
             textStyle: TextStyle(
               color: Colors.white,
               fontSize: 13,
@@ -110,59 +118,150 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      home: ProductDetailsPage(),
+      home: SignupPage(),
       routes: {
+        'otp-page': (context) {
+          final email = ModalRoute.of(context)!.settings.arguments as String;
+          return OtpPage(email: email);
+        },
+        '/Get-started': (context) => GetSartedpage(),
         '/orders-details': (context) => OrderDetailsPage(),
         '/mystore': (context) => MyStorePage(),
+        '/product-details': (context) => ProductDetailsPage(),
       },
     );
   }
 }
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final List _pages = [MyStorePage(), OrderDetailsPage()];
+  final List _pages = [
+    DashboardPage(),
+    ProductPages(),
+    OrdersPages(),
+    MyStorePage(),
+  ];
 
   int _selectedPage = 0;
-  void _changePage(int index) {
-    setState(() {
-      _selectedPage = index;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: _pages[_selectedPage],
       bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(10.0),
+        padding: const EdgeInsets.all(8.0),
+
         child: Container(
-          decoration: ShapeDecoration(
-            color: Color(0xFF446785),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(28),
-            ),
-          ),
-          child: BottomNavigationBar(
-            items: [
-              BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Store'),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.shopping_cart),
-                label: 'Orders',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.person),
-                label: 'Account',
+          decoration: BoxDecoration(
+            color: Theme.of(context).primaryColor,
+
+            borderRadius: BorderRadius.circular(31),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.4),
+                spreadRadius: 1,
+                blurRadius: 2,
+                offset: Offset(3, 2),
               ),
             ],
-            onTap: _changePage,
-            currentIndex: _selectedPage,
-            backgroundColor: WidgetStateColor.transparent,
-            showUnselectedLabels: false,
+          ),
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton.icon(
+                style: TextButton.styleFrom(
+                  backgroundColor:
+                      _selectedPage == 0 ? Colors.white : Colors.transparent,
+                  foregroundColor:
+                      _selectedPage == 0
+                          ? Theme.of(context).primaryColor
+                          : Colors.white,
+                  iconColor:
+                      _selectedPage == 0
+                          ? Theme.of(context).primaryColor
+                          : Colors.white,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _selectedPage = 0;
+                  });
+                },
+                icon: Icon(Icons.home_filled, size: 30),
+                label: _selectedPage == 0 ? Text('Home') : SizedBox.shrink(),
+              ),
+              TextButton.icon(
+                style: TextButton.styleFrom(
+                  backgroundColor:
+                      _selectedPage == 1 ? Colors.white : Colors.transparent,
+                  foregroundColor:
+                      _selectedPage == 1
+                          ? Theme.of(context).primaryColor
+                          : Colors.white,
+                  iconColor:
+                      _selectedPage == 1
+                          ? Theme.of(context).primaryColor
+                          : Colors.white,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _selectedPage = 1;
+                  });
+                },
+                icon: Icon(Icons.home_repair_service, size: 30),
+                label: _selectedPage == 1 ? Text('Product') : SizedBox.shrink(),
+              ),
+              TextButton.icon(
+                style: TextButton.styleFrom(
+                  backgroundColor:
+                      _selectedPage == 2 ? Colors.white : Colors.transparent,
+                  foregroundColor:
+                      _selectedPage == 2
+                          ? Theme.of(context).primaryColor
+                          : Colors.white,
+                  iconColor:
+                      _selectedPage == 2
+                          ? Theme.of(context).primaryColor
+                          : Colors.white,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _selectedPage = 2;
+                  });
+                },
+
+                icon: Icon(Icons.shopping_bag, size: 30),
+                label: _selectedPage == 2 ? Text('Orders') : SizedBox.shrink(),
+              ),
+              TextButton.icon(
+                style: TextButton.styleFrom(
+                  backgroundColor:
+                      _selectedPage == 3 ? Colors.white : Colors.transparent,
+                  foregroundColor:
+                      _selectedPage == 3
+                          ? Theme.of(context).primaryColor
+                          : Colors.white,
+                  iconColor:
+                      _selectedPage == 3
+                          ? Theme.of(context).primaryColor
+                          : Colors.white,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _selectedPage = 3;
+                  });
+                },
+                icon: Icon(Icons.storefront_rounded, size: 30),
+                label: _selectedPage == 3 ? Text('Store') : SizedBox.shrink(),
+              ),
+            ],
           ),
         ),
       ),
