@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:major_project/pages/add_categories.dart';
 import 'package:major_project/pages/dashboard_page.dart';
 import 'package:major_project/pages/get_started_page,dart.dart';
 import 'package:major_project/pages/my_store_page.dart';
@@ -60,9 +61,11 @@ class MyApp extends StatelessWidget {
         // Define Text Theme for different headings
         textTheme: TextTheme(
           displayLarge: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
+            color: Color(0xFF446785),
+            fontSize: 20,
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w800,
+            height: 1.40,
           ), // h1
           displayMedium: TextStyle(
             color: Colors.black,
@@ -118,13 +121,16 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      home: SignupPage(),
       routes: {
-        'otp-page': (context) {
+        '/': (context) => SignupPage(),
+        '/dashboard': (context) => HomeScreen(),
+        '/categories': (context) => AddCategories(),
+
+        '/otp-page': (context) {
           final email = ModalRoute.of(context)!.settings.arguments as String;
           return OtpPage(email: email);
         },
-        '/Get-started': (context) => GetSartedpage(),
+        '/Get-started': (context) => GetStartedPage(),
         '/orders-details': (context) => OrderDetailsPage(),
         '/mystore': (context) => MyStorePage(),
         '/product-details': (context) => ProductDetailsPage(),

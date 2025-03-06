@@ -1,14 +1,28 @@
 import 'package:flutter/material.dart';
 
 class CategoriesDropdown extends StatefulWidget {
-  const CategoriesDropdown({super.key});
+  final String initialValue;
+  final ValueChanged<String> onChanged;
+
+  const CategoriesDropdown({
+    super.key,
+    required this.initialValue,
+    required this.onChanged,
+  });
 
   @override
   State<CategoriesDropdown> createState() => _CategoriesDropdownState();
 }
 
 class _CategoriesDropdownState extends State<CategoriesDropdown> {
-  String dropdownValue = 'Men';
+  late String dropdownValue;
+
+  @override
+  void initState() {
+    super.initState();
+    dropdownValue = widget.initialValue;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -38,6 +52,7 @@ class _CategoriesDropdownState extends State<CategoriesDropdown> {
           setState(() {
             dropdownValue = newValue!;
           });
+          widget.onChanged(newValue!);
         },
         items:
             <String>["Men", "Women", "Unisex", "Kids", "Teens"].map((

@@ -178,7 +178,7 @@ class _SignupPageState extends State<SignupPage> {
                     ),
                     SizedBox(height: 20),
                     ElevatedButton(
-                      onPressed: _signup,
+                      onPressed: _isLoading ? null : _signup,
                       style: ElevatedButton.styleFrom(
                         fixedSize: Size(338, 54),
                         backgroundColor: Color(0xFF446785),

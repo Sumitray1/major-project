@@ -1,7 +1,18 @@
 import 'package:flutter/material.dart';
 
 class ProductCard extends StatelessWidget {
-  const ProductCard({super.key});
+  final String name;
+  final String description;
+  final String price;
+  final String imageLink;
+
+  const ProductCard({
+    Key? key,
+    required this.name,
+    required this.description,
+    required this.price,
+    required this.imageLink,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -15,18 +26,18 @@ class ProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Image.asset('assets/images/shoes1.png', fit: BoxFit.fitHeight),
+            Image.network(imageLink, fit: BoxFit.fitHeight),
             SizedBox(height: 14),
-            Text('Nike', style: Theme.of(context).textTheme.displaySmall),
+            Text(name, style: Theme.of(context).textTheme.displaySmall),
             SizedBox(height: 14),
             Text(
-              'Air Jordan 1 Retro High Obsidian UNC ',
+              description,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.titleSmall,
             ),
             SizedBox(height: 14),
-            Text('Rs. 966', style: Theme.of(context).textTheme.displaySmall),
+            Text(price, style: Theme.of(context).textTheme.displaySmall),
           ],
         ),
       ),
