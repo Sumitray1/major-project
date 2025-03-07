@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:major_project/services/shared_preferences_service.dart';
 import 'package:pinput/pinput.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OtpPage extends StatefulWidget {
   final String email;
@@ -81,6 +82,8 @@ class _OtpPageState extends State<OtpPage> {
       if (response.statusCode == 200) {
         var body = jsonDecode(response.body);
         if (body.isNotEmpty) {
+          SharedPreferences sf = await SharedPreferences.getInstance();
+          sf.setString('vendorId', body[0]['_id']);
           Navigator.pushNamedAndRemoveUntil(
             context,
             '/dashboard',

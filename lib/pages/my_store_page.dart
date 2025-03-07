@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:major_project/classes/Configuration_Class.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MyStorePage extends StatelessWidget {
   MyStorePage({super.key});
@@ -25,7 +26,6 @@ class MyStorePage extends StatelessWidget {
       imagePath: 'assets/images/visitweb.png',
       name: "Visit Website",
     ),
-    ConfigurationClass(imagePath: 'assets/images/logout.png', name: "Logout"),
   ];
   @override
   Widget build(BuildContext context) {
@@ -130,6 +130,36 @@ class MyStorePage extends StatelessWidget {
                 ),
               );
             },
+          ),
+
+          InkWell(
+            onTap: () async {
+              SharedPreferences sf = await SharedPreferences.getInstance();
+              sf.clear();
+              Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
+            },
+            child: Container(
+              margin: EdgeInsets.symmetric(vertical: 12.0),
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(15),
+              ),
+
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: <Widget>[
+                  Image.asset(
+                    'assets/images/logout.png',
+                    height: 25,
+                    width: 25,
+                  ),
+                  SizedBox(width: 16),
+
+                  Text('Logout'),
+                ],
+              ),
+            ),
           ),
         ],
       ),

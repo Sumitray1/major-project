@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:major_project/pages/otp_page.dart'; // Import the OTP page
+import 'package:major_project/pages/otp_page.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Import the OTP page
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -46,6 +47,20 @@ class _SignupPageState extends State<SignupPage> {
         context,
       ).showSnackBar(SnackBar(content: Text('Failed to signup')));
     }
+  }
+
+  checkLogin() async {
+    SharedPreferences sf = await SharedPreferences.getInstance();
+    String vendorId = sf.getString('vendorId') ?? '';
+    if (vendorId != '') {
+      Navigator.pushNamedAndRemoveUntil(context, '/dashboard', (_) => false);
+    }
+  }
+
+  @override
+  void initState() {
+    checkLogin();
+    super.initState();
   }
 
   @override

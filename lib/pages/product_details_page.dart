@@ -25,7 +25,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
   final TextEditingController _discountController = TextEditingController();
   final TextEditingController _profitController = TextEditingController();
   final TextEditingController _stocksController = TextEditingController();
-  File? _image;
+  List<File> _images = [];
 
   bool _unlimitedStock = false;
   String _selectedCategory = 'Men';
@@ -33,13 +33,64 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
 
   Future<void> _pickImage() async {
     final ImagePicker _picker = ImagePicker();
-    final XFile? pickedFile = await _picker.pickImage(
-      source: ImageSource.gallery,
-    );
+    final List<XFile>? pickedFile = await _picker.pickMultiImage();
 
     if (pickedFile != null) {
       setState(() {
-        _image = File(pickedFile.path);
+        var y = pickedFile.map((file) => File(file.path));
+        for (var im in pickedFile) {
+          _images.add(File(im.path));
+        }
+      });
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('No image selected')));
+    }
+  }
+
+  Future<List<String>?> _uploadMedia() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final SharedPreferences sf = await SharedPreferences.getInstance();
+    String? accessToken = await _prefsService.getToken();
+    final String apiUrl =
+        'https://sellsajilo-backend.onrender.com/v1/media/upload';
+    final request =
+        http.MultipartRequest('POST', Uri.parse(apiUrl))
+          ..headers['Authorization'] = 'Bearer $accessToken'
+          ..fields['name'] = 'product';
+    for (var img in _images) {
+      request.files.add(await http.MultipartFile.fromPath('files', img.path));
+    }
+
+    try {
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+      if (response.statusCode == 201) {
+        final responseData = jsonDecode(responseBody);
+        print(responseData);
+        return (responseData['medias'] as List)
+            .map((m) => m['_id'] as String)
+            .toList();
+      } else {
+        print('Failed to upload media: ${responseBody}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to upload media: ${responseBody}')),
+        );
+        return null;
+      }
+    } catch (e) {
+      print('Error: $e');
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      return null;
+    } finally {
+      setState(() {
+        _isLoading = false;
       });
     }
   }
@@ -55,12 +106,8 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
           'https://sellsajilo-backend.onrender.com/v1/product/create';
 
       String? accessToken = await _prefsService.getToken();
-      print(sf.getString('vendorId'));
 
-      String? base64Image;
-      if (_image != null) {
-        base64Image = base64Encode(_image!.readAsBytesSync());
-      }
+      final List<String>? mediaIds = await _uploadMedia();
 
       final response = await http.post(
         Uri.parse(apiUrl),
@@ -78,13 +125,12 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
           'unlimitedStocks': _unlimitedStock,
           'vendor': sf.getString('vendorId'),
           'category': '67c8cb7026fda721622b28f0',
-          'images': base64Image != null ? [base64Image] : [],
+          'images': [...mediaIds!],
         }),
       );
 
       if (response.statusCode == 201) {
         var body = await jsonDecode(response.body);
-        // sf.setString('vendorId', body['_id']);
 
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -126,18 +172,25 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
       body: ListView(
         padding: EdgeInsets.all(16),
         children: [
-          GestureDetector(
-            onTap: _pickImage,
-            child: Center(
-              child:
-                  _image == null
-                      ? Image.asset('assets/images/logoUpload.png')
-                      : Image.file(
-                        _image!,
-                        height: 100,
-                        width: 100,
-                        fit: BoxFit.cover,
-                      ),
+          SizedBox(
+            height: 200,
+            child: PageView(
+              children: [
+                ..._images.map(
+                  (img) => Image.file(
+                    img,
+                    height: 100,
+                    width: 100,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: _pickImage,
+                  child: Center(
+                    child: Image.asset('assets/images/logoUpload.png'),
+                  ),
+                ),
+              ],
             ),
           ),
           SizedBox(height: 14),
