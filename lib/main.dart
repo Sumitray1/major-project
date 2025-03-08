@@ -131,7 +131,11 @@ class MyApp extends StatelessWidget {
           return OtpPage(email: email);
         },
         '/Get-started': (context) => GetStartedPage(),
-        '/orders-details': (context) => OrderDetailsPage(),
+        '/order-details': (context) {
+          final id = ModalRoute.of(context)!.settings.arguments as String;
+          return OrderDetailsPage(id: id);
+        },
+
         '/mystore': (context) => MyStorePage(),
         '/product-details': (context) => ProductDetailsPage(),
       },

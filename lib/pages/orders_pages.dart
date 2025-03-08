@@ -38,10 +38,6 @@ class _OrdersPagesState extends State<OrdersPages> {
       },
     );
 
-    print(
-      'https://sellsajilo-backend.onrender.com/v1/bookings/all?page=0&limit=20&vendorId=$vendorId',
-    );
-
     if (response.statusCode == 200) {
       List jsonResponse = json.decode(response.body)['bookings'];
       return jsonResponse.map((order) => Order.fromJson(order)).toList();
@@ -186,7 +182,8 @@ class _OrdersPagesState extends State<OrdersPages> {
                               name: '${order.fname} ${order.lname}',
                               orderStatus: order.bookingStatus,
                               qty: order.qty,
-                              disc: order.discount,
+                              disc: order.product.desc,
+                              orderId: order.id,
                               imageUrl:
                                   order.product.images.isNotEmpty
                                       ? order.product.images[0].path
