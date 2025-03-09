@@ -12,22 +12,30 @@ class ProductPages extends StatefulWidget {
 }
 
 class _ProductPagesState extends State<ProductPages> {
-  late Future<List<Product>> _products;
+  late Future<Map<String, dynamic>> _data;
+  String _selectedCategoryId = 'All';
 
   @override
   void initState() {
     super.initState();
-    _products = fetchProducts();
+    _data = fetchData();
   }
 
-  Future<List<Product>> fetchProducts() async {
+  Future<Map<String, dynamic>> fetchData([String? categoryId]) async {
+    final categories = await fetchCategories();
+    final products = await fetchProducts(categoryId);
+    return {'categories': categories, 'products': products};
+  }
+
+  Future<List<Product>> fetchProducts([String? categoryId]) async {
     final SharedPreferences sf = await SharedPreferences.getInstance();
     String? vendorId = sf.getString('vendorId');
-    final response = await http.get(
-      Uri.parse(
-        'https://sellsajilo-backend.onrender.com/v1/product/all?page=0&limit=100&vendorId=$vendorId',
-      ),
-    );
+    String url =
+        'https://sellsajilo-backend.onrender.com/v1/product/all?page=0&limit=20&vendorId=$vendorId';
+    if (categoryId != null && categoryId != 'All') {
+      url += '&categoryId=$categoryId';
+    }
+    final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
       List jsonResponse = json.decode(response.body)['products'];
@@ -38,24 +46,38 @@ class _ProductPagesState extends State<ProductPages> {
     }
   }
 
-  void _refetchProducts() {
+  Future<List<Category>> fetchCategories() async {
+    final SharedPreferences sf = await SharedPreferences.getInstance();
+    String? vendorId = sf.getString('vendorId');
+    final response = await http.get(
+      Uri.parse(
+        'https://sellsajilo-backend.onrender.com/v1/category/all/${vendorId}',
+      ),
+    );
+
+    if (response.statusCode == 200) {
+      List jsonResponse = json.decode(response.body)['categories'];
+      List<Category> categories =
+          jsonResponse.map((category) => Category.fromJson(category)).toList();
+      categories.insert(
+        0,
+        Category(id: 'All', name: 'All Categories'),
+      ); // Add "All Categories" option
+      return categories;
+    } else {
+      print('Failed to load categories');
+      throw Exception('Failed to load categories');
+    }
+  }
+
+  void _refetchProducts([String? categoryId]) {
     setState(() {
-      _products = fetchProducts();
+      _data = fetchData(categoryId);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final List<String> categories = [
-      "All Category",
-      "Electronics",
-      "Clothing",
-      "Home & Kitchen",
-      "Beauty",
-      "Books",
-      "Sports",
-    ];
-
     return Scaffold(
       backgroundColor: Color(0xFFF6F6F6),
       appBar: AppBar(
@@ -70,100 +92,115 @@ class _ProductPagesState extends State<ProductPages> {
           ],
         ),
         actions: [
-          IconButton(icon: Icon(Icons.refresh), onPressed: _refetchProducts),
+          IconButton(
+            icon: Icon(Icons.refresh),
+            onPressed: () => _refetchProducts(_selectedCategoryId),
+          ),
         ],
       ),
-      body: ListView(
-        padding: EdgeInsets.all(16),
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: TextField(
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  decoration: InputDecoration(
-                    hintText: 'Search for products',
-                    prefixIcon: Icon(Icons.search),
-                  ),
-                ),
-              ),
-              SizedBox(width: 12),
-              IconButton(
-                onPressed: () {},
-                icon: Icon(
-                  Icons.filter_alt_outlined,
-                  color: Color(0xFF767676),
-                  size: 35,
-                ),
-                style: ButtonStyle(
-                  backgroundColor: WidgetStatePropertyAll<Color>(Colors.white),
-                  shape: WidgetStatePropertyAll<RoundedRectangleBorder>(
-                    RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10), // Border radius
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 14),
-          Text(
-            '25 Products Found',
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
-          SizedBox(height: 14),
-          SizedBox(
-            height: 40,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children:
-                  categories.map((category) {
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: TextButton(
-                        onPressed: () {},
-                        style: TextButton.styleFrom(
-                          backgroundColor:
-                              category == 'All Category'
-                                  ? Colors.black
-                                  : Colors.transparent,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 2,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
+      body: FutureBuilder<Map<String, dynamic>>(
+        future: _data,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Failed to load data'));
+          } else if (!snapshot.hasData) {
+            return Center(child: Text('No data found'));
+          } else {
+            final categories = snapshot.data!['categories'] as List<Category>;
+            final products = snapshot.data!['products'] as List<Product>;
+
+            return ListView(
+              padding: EdgeInsets.all(16),
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        style: Theme.of(context).textTheme.bodyMedium,
+                        decoration: InputDecoration(
+                          hintText: 'Search for products',
+                          prefixIcon: Icon(Icons.search),
                         ),
-                        child: Text(
-                          category,
-                          style: Theme.of(
-                            context,
-                          ).textTheme.displaySmall?.copyWith(
-                            color:
-                                category == 'All Category'
-                                    ? Colors.white
-                                    : Colors.black,
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    IconButton(
+                      onPressed: () {},
+                      icon: Icon(
+                        Icons.filter_alt_outlined,
+                        color: Color(0xFF767676),
+                        size: 35,
+                      ),
+                      style: ButtonStyle(
+                        backgroundColor: WidgetStatePropertyAll<Color>(
+                          Colors.white,
+                        ),
+                        shape: WidgetStatePropertyAll<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              10,
+                            ), // Border radius
                           ),
                         ),
                       ),
-                    );
-                  }).toList(),
-            ),
-          ),
-          SizedBox(height: 14),
-          FutureBuilder<List<Product>>(
-            future: _products,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return Center(child: Text('Failed to load products'));
-              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return Center(child: Text('No products found'));
-              } else {
-                return GridView.count(
+                    ),
+                  ],
+                ),
+                SizedBox(height: 14),
+                Text(
+                  '${products.length} Products Found',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                SizedBox(height: 14),
+                SizedBox(
+                  height: 40,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    children:
+                        categories.map((category) {
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: TextButton(
+                              onPressed: () {
+                                setState(() {
+                                  _selectedCategoryId = category.id;
+                                });
+                                _refetchProducts(category.id);
+                              },
+                              style: TextButton.styleFrom(
+                                backgroundColor:
+                                    category.id == _selectedCategoryId
+                                        ? Colors.black
+                                        : Colors.transparent,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 2,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ),
+                              ),
+                              child: Text(
+                                category.name,
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.displaySmall?.copyWith(
+                                  color:
+                                      category.id == _selectedCategoryId
+                                          ? Colors.white
+                                          : Colors.black,
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                  ),
+                ),
+                SizedBox(height: 14),
+                GridView.count(
                   crossAxisSpacing: 15,
                   mainAxisSpacing: 15,
                   crossAxisCount: 2,
@@ -171,7 +208,7 @@ class _ProductPagesState extends State<ProductPages> {
                   childAspectRatio: 0.75,
                   physics: NeverScrollableScrollPhysics(),
                   children:
-                      snapshot.data!.map((product) {
+                      products.map((product) {
                         return SizedBox(
                           child: ProductCard(
                             name: product.name,
@@ -184,11 +221,11 @@ class _ProductPagesState extends State<ProductPages> {
                           ),
                         );
                       }).toList(),
-                );
-              }
-            },
-          ),
-        ],
+                ),
+              ],
+            );
+          }
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -245,6 +282,17 @@ class _ProductPagesState extends State<ProductPages> {
         );
       },
     );
+  }
+}
+
+class Category {
+  final String id;
+  final String name;
+
+  Category({required this.id, required this.name});
+
+  factory Category.fromJson(Map<String, dynamic> json) {
+    return Category(id: json['_id'], name: json['name']);
   }
 }
 

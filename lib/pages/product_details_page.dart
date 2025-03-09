@@ -28,7 +28,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
   List<File> _images = [];
 
   bool _unlimitedStock = false;
-  String _selectedCategory = 'Men';
+  String _selectedCategory = '';
   bool _isLoading = false;
 
   Future<void> _pickImage() async {
@@ -124,11 +124,11 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
           'stocks': int.parse(_stocksController.text),
           'unlimitedStocks': _unlimitedStock,
           'vendor': sf.getString('vendorId'),
-          'category': '67c8cb7026fda721622b28f0',
+          'category': _selectedCategory,
           'images': [...mediaIds!],
         }),
       );
-
+      print(response.body.toString());
       if (response.statusCode == 201) {
         var body = await jsonDecode(response.body);
 
@@ -137,6 +137,8 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
           const SnackBar(content: Text('Details updated successfully')),
         );
       } else {
+        print(response.body.toString());
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to update details: ${response.body}')),
         );
@@ -151,6 +153,14 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
         _isLoading = false;
       });
     }
+  }
+
+  void handleCategoryChange(String categoryId) {
+    setState(() {
+      _selectedCategory = categoryId;
+    });
+    // You can now use the selectedCategoryId as needed
+    print('Selected Category ID: $categoryId');
   }
 
   @override
@@ -187,7 +197,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                 GestureDetector(
                   onTap: _pickImage,
                   child: Center(
-                    child: Image.asset('assets/images/logoUpload.png'),
+                    child: Image.asset('assets/images/upload.png', height: 100),
                   ),
                 ),
               ],
@@ -292,14 +302,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
             style: Theme.of(context).textTheme.titleSmall,
           ),
           SizedBox(height: 8),
-          CategoriesDropdown(
-            initialValue: _selectedCategory,
-            onChanged: (newValue) {
-              setState(() {
-                _selectedCategory = newValue;
-              });
-            },
-          ),
+          CategoriesDropdown(onChanged: handleCategoryChange),
           SizedBox(height: 20),
           Text('Stocks', style: Theme.of(context).textTheme.displaySmall),
           Text(

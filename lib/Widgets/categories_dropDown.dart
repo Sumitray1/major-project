@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CategoriesDropdown extends StatefulWidget {
-  final String initialValue;
   final ValueChanged<String> onChanged;
 
-  const CategoriesDropdown({
-    super.key,
-    required this.initialValue,
-    required this.onChanged,
-  });
+  const CategoriesDropdown({super.key, required this.onChanged});
 
   @override
   State<CategoriesDropdown> createState() => _CategoriesDropdownState();
@@ -16,11 +15,43 @@ class CategoriesDropdown extends StatefulWidget {
 
 class _CategoriesDropdownState extends State<CategoriesDropdown> {
   late String dropdownValue;
+  List<Map<String, dynamic>> categories = [];
 
   @override
   void initState() {
     super.initState();
-    dropdownValue = widget.initialValue;
+    fetchCategories();
+  }
+
+  Future<void> fetchCategories() async {
+    final SharedPreferences sf = await SharedPreferences.getInstance();
+    String? vendorId = sf.getString('vendorId');
+    final response = await http.get(
+      Uri.parse(
+        'https://sellsajilo-backend.onrender.com/v1/category/all/${vendorId}',
+      ),
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      setState(() {
+        categories =
+            (data['categories'] as List)
+                .map(
+                  (category) => {
+                    'id': category['_id'],
+                    'name': category['name'],
+                  },
+                )
+                .toList();
+        if (categories.isNotEmpty) {
+          dropdownValue = categories[0]['name']!;
+          widget.onChanged(categories[0]['id']!);
+        }
+      });
+    } else {
+      throw Exception('Failed to load categories');
+    }
   }
 
   @override
@@ -52,13 +83,17 @@ class _CategoriesDropdownState extends State<CategoriesDropdown> {
           setState(() {
             dropdownValue = newValue!;
           });
-          widget.onChanged(newValue!);
+          final selectedCategory = categories.firstWhere(
+            (category) => category['name'] == newValue,
+          );
+          widget.onChanged(selectedCategory['id']!);
         },
         items:
-            <String>["Men", "Women", "Unisex", "Kids", "Teens"].map((
-              String value,
-            ) {
-              return DropdownMenuItem<String>(value: value, child: Text(value));
+            categories.map<DropdownMenuItem<String>>((category) {
+              return DropdownMenuItem<String>(
+                value: category['name'],
+                child: Text(category['name']!),
+              );
             }).toList(),
       ),
     );

@@ -16,31 +16,49 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Image.network(imageLink, fit: BoxFit.fitHeight),
-            SizedBox(height: 14),
-            Text(name, style: Theme.of(context).textTheme.displaySmall),
-            SizedBox(height: 14),
-            Text(
-              description,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.titleSmall,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        double imageHeight =
+            constraints.maxWidth *
+            0.5; // Adjust the image height based on the width
+
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Image.network(
+                  imageLink,
+                  height: imageHeight,
+                  width:
+                      constraints
+                          .maxWidth, // Make the image take the full width
+                  fit:
+                      BoxFit
+                          .cover, // Cover the full width while maintaining aspect ratio
+                ),
+                SizedBox(height: 14),
+                Text(name, style: Theme.of(context).textTheme.displaySmall),
+                SizedBox(height: 14),
+                Text(
+                  description,
+                  maxLines: 2,
+                  overflow:
+                      TextOverflow.ellipsis, // Use ellipsis when text overflows
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                SizedBox(height: 14),
+                Text(price, style: Theme.of(context).textTheme.displaySmall),
+              ],
             ),
-            SizedBox(height: 14),
-            Text(price, style: Theme.of(context).textTheme.displaySmall),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

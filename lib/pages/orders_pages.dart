@@ -133,14 +133,12 @@ class _OrdersPagesState extends State<OrdersPages> {
                 return Center(child: CircularProgressIndicator());
               } else if (snapshot.hasError) {
                 return Center(child: Text('Failed to load orders'));
-              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return Center(child: Text('No orders found'));
               } else {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${snapshot.data!.length} Orders Found',
+                      '${snapshot.hasData ? snapshot.data!.length : 0} Orders Found',
                       style: Theme.of(context).textTheme.titleSmall,
                     ),
                     SizedBox(height: 14),
@@ -185,28 +183,31 @@ class _OrdersPagesState extends State<OrdersPages> {
                       ),
                     ),
                     SizedBox(height: 14),
-                    Column(
-                      children:
-                          snapshot.data!.map((order) {
-                            return Column(
-                              children: [
-                                SizedBox(height: 14),
-                                OrderCard(
-                                  price: order.price,
-                                  name: '${order.fname} ${order.lname}',
-                                  orderStatus: order.bookingStatus,
-                                  qty: order.qty,
-                                  disc: order.product.desc,
-                                  orderId: order.id,
-                                  imageUrl:
-                                      order.product.images.isNotEmpty
-                                          ? order.product.images[0].path
-                                          : '',
-                                ),
-                              ],
-                            );
-                          }).toList(),
-                    ),
+                    if (!snapshot.hasData || snapshot.data!.isEmpty)
+                      Center(child: Text('No orders found')),
+                    if (snapshot.hasData && snapshot.data!.isNotEmpty)
+                      Column(
+                        children:
+                            snapshot.data!.map((order) {
+                              return Column(
+                                children: [
+                                  SizedBox(height: 14),
+                                  OrderCard(
+                                    price: order.price,
+                                    name: '${order.fname} ${order.lname}',
+                                    orderStatus: order.bookingStatus,
+                                    qty: order.qty,
+                                    disc: order.product.desc,
+                                    orderId: order.id,
+                                    imageUrl:
+                                        order.product.images.isNotEmpty
+                                            ? order.product.images[0].path
+                                            : '',
+                                  ),
+                                ],
+                              );
+                            }).toList(),
+                      ),
                   ],
                 );
               }
