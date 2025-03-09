@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class OrderDropdownButton extends StatefulWidget {
-  const OrderDropdownButton({super.key});
+  final Function(String) onChanged; // Callback function
+
+  const OrderDropdownButton({super.key, required this.onChanged});
 
   @override
   State<OrderDropdownButton> createState() => _OrderDropdownButtonState();
@@ -9,6 +11,7 @@ class OrderDropdownButton extends StatefulWidget {
 
 class _OrderDropdownButtonState extends State<OrderDropdownButton> {
   String dropdownValue = 'Pending';
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -38,11 +41,17 @@ class _OrderDropdownButtonState extends State<OrderDropdownButton> {
           setState(() {
             dropdownValue = newValue!;
           });
+          widget.onChanged(newValue!); // Notify parent widget
         },
         items:
-            <String>["Pending", "Processing", "Delivered", "Cancelled"].map((
-              String value,
-            ) {
+            <String>[
+              "Pending",
+              "Verified",
+              "Accepted",
+              "Shipping",
+              "Delivered",
+              "Refunded",
+            ].map((String value) {
               return DropdownMenuItem<String>(value: value, child: Text(value));
             }).toList(),
       ),

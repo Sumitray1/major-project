@@ -14,6 +14,7 @@ class OrdersPages extends StatefulWidget {
 
 class _OrdersPagesState extends State<OrdersPages> {
   late Future<List<Order>> _orders;
+  String _selectedCategory = "All Orders";
 
   @override
   void initState() {
@@ -21,7 +22,7 @@ class _OrdersPagesState extends State<OrdersPages> {
     _orders = fetchOrders();
   }
 
-  Future<List<Order>> fetchOrders() async {
+  Future<List<Order>> fetchOrders({String? category}) async {
     final SharedPreferences sf = await SharedPreferences.getInstance();
     final SharedPreferencesService _prefsService = SharedPreferencesService();
 
@@ -32,24 +33,29 @@ class _OrdersPagesState extends State<OrdersPages> {
       Uri.parse(
         'https://sellsajilo-backend.onrender.com/v1/bookings/all?page=0&limit=20&vendorId=$vendorId',
       ),
-      headers: {
-        'Authorization':
-            'Bearer $accessToken', // Add the access token to the headers
-      },
+      headers: {'Authorization': 'Bearer $accessToken'},
     );
 
     if (response.statusCode == 200) {
       List jsonResponse = json.decode(response.body)['bookings'];
-      return jsonResponse.map((order) => Order.fromJson(order)).toList();
+      List<Order> orders =
+          jsonResponse.map((order) => Order.fromJson(order)).toList();
+
+      if (category != null && category != "All Orders") {
+        orders =
+            orders.where((order) => order.bookingStatus == category).toList();
+      }
+
+      return orders;
     } else {
-      print('Failed to load orders');
       throw Exception('Failed to load orders');
     }
   }
 
-  void _refetchOrders() {
+  void _refetchOrders({String? category}) {
     setState(() {
-      _orders = fetchOrders();
+      _selectedCategory = category ?? "All Orders";
+      _orders = fetchOrders(category: _selectedCategory);
     });
   }
 
@@ -58,10 +64,11 @@ class _OrdersPagesState extends State<OrdersPages> {
     final List<String> categories = [
       "All Orders",
       "Pending",
+      "Verified",
       "Accepted",
       "Shipping",
-      "Verifying",
-      "Canceled",
+      "Delivered",
+      "Refunded",
     ];
 
     return Scaffold(
@@ -78,7 +85,10 @@ class _OrdersPagesState extends State<OrdersPages> {
           ],
         ),
         actions: [
-          IconButton(icon: Icon(Icons.refresh), onPressed: _refetchOrders),
+          IconButton(
+            icon: Icon(Icons.refresh),
+            onPressed: () => _refetchOrders(),
+          ),
         ],
       ),
       body: ListView(
@@ -130,10 +140,10 @@ class _OrdersPagesState extends State<OrdersPages> {
                     return Padding(
                       padding: const EdgeInsets.only(right: 8.0),
                       child: TextButton(
-                        onPressed: () {},
+                        onPressed: () => _refetchOrders(category: category),
                         style: TextButton.styleFrom(
                           backgroundColor:
-                              category == "All Orders"
+                              _selectedCategory == category
                                   ? Colors.black
                                   : Colors.transparent,
                           padding: EdgeInsets.symmetric(
@@ -150,7 +160,7 @@ class _OrdersPagesState extends State<OrdersPages> {
                             context,
                           ).textTheme.displaySmall?.copyWith(
                             color:
-                                category == "All Orders"
+                                _selectedCategory == category
                                     ? Colors.white
                                     : Colors.black,
                           ),

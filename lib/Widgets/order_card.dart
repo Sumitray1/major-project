@@ -25,18 +25,24 @@ class OrderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     Color getStatusColor(String status) {
       switch (status.toLowerCase()) {
-        case 'accepted':
-          return Color(0x1F43F633); // Accepted with opacity 20%
+        case 'pending':
+          return Color.fromARGB(255, 255, 252, 252); // Gray for Pending
         case 'verified':
-          return Color.fromARGB(71, 47, 102, 206); // Verified with opacity 20%
+          return Color.fromARGB(209, 47, 103, 206); // Blue for Verified
+        case 'accepted':
+          return Color.fromARGB(193, 11, 215, 230); // Light Blue for Accepted
         case 'shipping':
-          return Color.fromARGB(197, 220, 233, 43); // Shipping with opacity 20%
+          return Color.fromARGB(197, 220, 233, 43); // Yellow for Shipping
         case 'delivered':
-          return Color.fromARGB(80, 46, 196, 78); // Delivered with opacity 20%
+          return Color.fromARGB(193, 11, 230, 11); // Green for Delivered
+        case 'returned':
+          return Color.fromARGB(235, 255, 165, 0); // Orange for Returned
+        case 'refunded':
+          return Color.fromARGB(255, 128, 0, 128); // Purple for Refunded
         case 'cancelled':
-          return Color.fromARGB(235, 231, 64, 34); // Cancelled with opacity 20%
+          return Color.fromARGB(235, 231, 64, 34); // Red for Cancelled
         default:
-          return Colors.white; // Pending or any other status
+          return Colors.white; // Default case
       }
     }
 

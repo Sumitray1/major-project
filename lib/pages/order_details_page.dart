@@ -6,6 +6,7 @@ import 'package:major_project/classes/order_details.dart';
 import 'package:major_project/classes/product_modal.dart';
 import 'package:intl/intl.dart';
 import 'package:major_project/services/shared_preferences_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class OrderDetailsPage extends StatefulWidget {
   final String id;
@@ -17,6 +18,9 @@ class OrderDetailsPage extends StatefulWidget {
 
 class _OrderDetailsPageState extends State<OrderDetailsPage> {
   late Future<CombinedData> _combinedData;
+  bool _isLoading = false;
+
+  String updatedStatusValue = '';
 
   @override
   void initState() {
@@ -36,9 +40,6 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
       headers: {'Authorization': 'Bearer $accessToken'},
     );
 
-    print('Order Response Status: ${orderResponse.statusCode}');
-    print('Order Response Body: ${orderResponse.body}');
-
     if (orderResponse.statusCode != 200) {
       throw Exception('Failed to load order details');
     }
@@ -56,16 +57,11 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
       headers: {'Authorization': 'Bearer $accessToken'},
     );
 
-    print('Product Response Status: ${productResponse.statusCode}');
-    print('Product Response Body: ${productResponse.body}');
-
     if (productResponse.statusCode != 200) {
       throw Exception('Failed to load product details');
     }
 
     final productData = ProductData.fromJson(json.decode(productResponse.body));
-
-    print('Product Data: ${productData.toString()}');
 
     return CombinedData(orderData: orderData, productData: productData);
   }
@@ -74,6 +70,59 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     setState(() {
       _combinedData = fetchCombinedData();
     });
+  }
+
+  // for updating Status
+  Future<void> updateBookingStatus(String status) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final SharedPreferencesService _prefsService = SharedPreferencesService();
+    String? accessToken = await _prefsService.getToken();
+    print('Access Token: $accessToken');
+
+    final response = await http.put(
+      Uri.parse(
+        'https://sellsajilo-backend.onrender.com/v1/bookings/update/id/${widget.id}',
+      ),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      },
+      body: json.encode({'bookingStatus': status}),
+    );
+    print(response.body.toString());
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Order status updated successfully')),
+      );
+      Navigator.pop(context, true);
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to update Order status')));
+
+      throw Exception('Failed to update Order status');
+    }
+  }
+  // make phone call
+
+  Future<void> makePhoneCall(String phoneNumber) async {
+    final Uri uri = Uri(scheme: 'tel', path: phoneNumber);
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      } else {
+        throw 'Could not launch $uri';
+      }
+    } catch (e) {
+      print('Error occurred: $e');
+    }
   }
 
   @override
@@ -104,6 +153,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
               final combinedData = snapshot.data!;
               final orderData = combinedData.orderData;
               final productData = combinedData.productData;
+
               return ListView(
                 padding: EdgeInsets.all(16),
                 children: [
@@ -186,22 +236,43 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                   ),
                   SizedBox(height: 14),
 
-                  OrderDropdownButton(),
+                  OrderDropdownButton(
+                    onChanged: (String newStatus) {
+                      setState(() {
+                        updatedStatusValue = newStatus;
+                      });
+                    },
+                  ),
                   SizedBox(height: 20),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       IconButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          makePhoneCall(orderData.phone);
+                        },
                         icon: Icon(Icons.phone_in_talk_outlined, size: 28),
                       ),
                       Expanded(
                         child: ElevatedButton(
-                          onPressed: () {
-                            print(widget.id);
-                          },
-                          child: Text("Update Status"),
+                          onPressed:
+                              updatedStatusValue == ''
+                                  ? null
+                                  : _isLoading
+                                  ? null
+                                  : () {
+                                    updateBookingStatus(updatedStatusValue);
+                                  },
+
                           style: ElevatedButton.styleFrom(),
+                          child:
+                              _isLoading
+                                  ? CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                  )
+                                  : Text("Update Status"),
                         ),
                       ),
                     ],
