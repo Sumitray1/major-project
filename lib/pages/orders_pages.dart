@@ -118,57 +118,12 @@ class _OrdersPagesState extends State<OrdersPages> {
                   backgroundColor: WidgetStatePropertyAll<Color>(Colors.white),
                   shape: WidgetStatePropertyAll<RoundedRectangleBorder>(
                     RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10), // Border radius
+                      borderRadius: BorderRadius.circular(10),
                     ),
                   ),
                 ),
               ),
             ],
-          ),
-          SizedBox(height: 14),
-          Text(
-            '25 Orders Found',
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
-          SizedBox(height: 14),
-          SizedBox(
-            height: 40,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children:
-                  categories.map((category) {
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: TextButton(
-                        onPressed: () => _refetchOrders(category: category),
-                        style: TextButton.styleFrom(
-                          backgroundColor:
-                              _selectedCategory == category
-                                  ? Colors.black
-                                  : Colors.transparent,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 2,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                        ),
-                        child: Text(
-                          category,
-                          style: Theme.of(
-                            context,
-                          ).textTheme.displaySmall?.copyWith(
-                            color:
-                                _selectedCategory == category
-                                    ? Colors.white
-                                    : Colors.black,
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-            ),
           ),
           SizedBox(height: 14),
           FutureBuilder<List<Order>>(
@@ -182,26 +137,77 @@ class _OrdersPagesState extends State<OrdersPages> {
                 return Center(child: Text('No orders found'));
               } else {
                 return Column(
-                  children:
-                      snapshot.data!.map((order) {
-                        return Column(
-                          children: [
-                            SizedBox(height: 14),
-                            OrderCard(
-                              price: order.price,
-                              name: '${order.fname} ${order.lname}',
-                              orderStatus: order.bookingStatus,
-                              qty: order.qty,
-                              disc: order.product.desc,
-                              orderId: order.id,
-                              imageUrl:
-                                  order.product.images.isNotEmpty
-                                      ? order.product.images[0].path
-                                      : '',
-                            ),
-                          ],
-                        );
-                      }).toList(),
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${snapshot.data!.length} Orders Found',
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    SizedBox(height: 14),
+                    SizedBox(
+                      height: 40,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        children:
+                            categories.map((category) {
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 8.0),
+                                child: TextButton(
+                                  onPressed:
+                                      () => _refetchOrders(category: category),
+                                  style: TextButton.styleFrom(
+                                    backgroundColor:
+                                        _selectedCategory == category
+                                            ? Colors.black
+                                            : Colors.transparent,
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 2,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10.0),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    category,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.displaySmall?.copyWith(
+                                      color:
+                                          _selectedCategory == category
+                                              ? Colors.white
+                                              : Colors.black,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                      ),
+                    ),
+                    SizedBox(height: 14),
+                    Column(
+                      children:
+                          snapshot.data!.map((order) {
+                            return Column(
+                              children: [
+                                SizedBox(height: 14),
+                                OrderCard(
+                                  price: order.price,
+                                  name: '${order.fname} ${order.lname}',
+                                  orderStatus: order.bookingStatus,
+                                  qty: order.qty,
+                                  disc: order.product.desc,
+                                  orderId: order.id,
+                                  imageUrl:
+                                      order.product.images.isNotEmpty
+                                          ? order.product.images[0].path
+                                          : '',
+                                ),
+                              ],
+                            );
+                          }).toList(),
+                    ),
+                  ],
                 );
               }
             },
