@@ -261,6 +261,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
             controller: _productPriceController,
             style: Theme.of(context).textTheme.bodyMedium,
             decoration: InputDecoration(hintText: '4999'),
+            keyboardType: TextInputType.number,
           ),
           SizedBox(height: 20),
           Text(
@@ -279,6 +280,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
               hintText: '400',
               hintStyle: TextStyle(color: Color(0xFF7C7A7A)),
             ),
+            keyboardType: TextInputType.number,
           ),
           SizedBox(height: 20),
           Text(
@@ -294,6 +296,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
             controller: _profitController,
             style: Theme.of(context).textTheme.bodyMedium,
             decoration: InputDecoration(hintText: '4999'),
+            keyboardType: TextInputType.number,
           ),
           SizedBox(height: 20),
           Text('Categories', style: Theme.of(context).textTheme.displaySmall),
@@ -314,6 +317,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
             controller: _stocksController,
             style: Theme.of(context).textTheme.bodyMedium,
             decoration: InputDecoration(hintText: '99'),
+            keyboardType: TextInputType.number,
           ),
           SizedBox(height: 20),
           Container(

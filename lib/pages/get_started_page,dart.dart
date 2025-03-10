@@ -170,7 +170,7 @@ class _GetSartedpageState extends State<GetStartedPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Details updated successfully')),
         );
-        Navigator.pushNamed(context, '/dashboard');
+        Navigator.pushNamed(context, '/product-page');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to update details: ${response.body}')),
@@ -400,7 +400,11 @@ class _GetSartedpageState extends State<GetStartedPage> {
                           ),
                           SizedBox(width: 16),
                           Text(
-                            '#${_selectedColor.value.toRadixString(16).substring(2).toUpperCase()}',
+                            '#'
+                            '${(_selectedColor.a * 255).toInt().toRadixString(16).padLeft(2, '0').toUpperCase()}'
+                            '${(_selectedColor.r * 255).toInt().toRadixString(16).padLeft(2, '0').toUpperCase()}'
+                            '${(_selectedColor.g * 255).toInt().toRadixString(16).padLeft(2, '0').toUpperCase()}'
+                            '${(_selectedColor.b * 255).toInt().toRadixString(16).padLeft(2, '0').toUpperCase()}',
                           ),
                         ],
                       ),

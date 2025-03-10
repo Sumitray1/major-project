@@ -95,15 +95,21 @@ class _AddCategoriesState extends State<AddCategories> {
       } else {
         print('Failed to upload media: ${responseBody}');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to upload media: ${responseBody}')),
+          SnackBar(
+            content: Text('Failed to upload media: ${responseBody}'),
+            backgroundColor: Colors.red, // Change this to your desired color
+          ),
         );
         return null;
       }
     } catch (e) {
       print('Error: $e');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red, // Change this to your desired color
+        ),
+      );
       return null;
     } finally {
       setState(() {
@@ -115,16 +121,22 @@ class _AddCategoriesState extends State<AddCategories> {
   Future<void> _addCategory() async {
     if (_categoryNameController.text.isEmpty || _image == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please provide a category name and image')),
+        SnackBar(
+          content: Text('Please provide a category name and image'),
+          backgroundColor: Colors.red, // Change this to your desired color
+        ),
       );
       return;
     }
 
     final String? mediaId = await _uploadMedia();
     if (mediaId == null || mediaId.isEmpty || mediaId.length > 255) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Invalid media ID')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Invalid media ID'),
+          backgroundColor: Colors.red, // Change this to your desired color
+        ),
+      );
       return;
     }
 
@@ -134,9 +146,12 @@ class _AddCategoriesState extends State<AddCategories> {
     String? vendorId = sfg.getString('vendorId');
 
     if (vendorId == null || vendorId.isEmpty || vendorId.length > 255) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Invalid vendor ID')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Invalid vendor ID'),
+          backgroundColor: Colors.red, // Change this to your desired color
+        ),
+      );
       return;
     }
 
@@ -161,22 +176,31 @@ class _AddCategoriesState extends State<AddCategories> {
     print(_categoryNameController.text);
     try {
       if (response.statusCode == 201) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Category added successfully')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Category added successfully'),
+            backgroundColor: Colors.green, // Change this to your desired color
+          ),
+        );
         Navigator.of(context).pop();
         _refreshCategories();
       } else {
         print(response.body);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to add category: ${response.body}')),
+          SnackBar(
+            content: Text('Failed to add category: ${response.body}'),
+            backgroundColor: Colors.red, // Change this to your desired color
+          ),
         );
       }
     } catch (e) {
       print(response.body);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red, // Change this to your desired color
+        ),
+      );
     }
   }
 
@@ -265,6 +289,7 @@ class _AddCategoriesState extends State<AddCategories> {
                         categories.map((category) {
                           return SizedBox(
                             child: CategoriesCard(
+                              id: category.id,
                               imageUrl: category.image.path,
                               name: category.name,
                               key: Key(category.id),

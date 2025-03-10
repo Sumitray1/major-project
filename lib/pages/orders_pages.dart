@@ -215,12 +215,6 @@ class _OrdersPagesState extends State<OrdersPages> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: Theme.of(context).primaryColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-        child: Icon(Icons.add, color: Colors.white),
-      ),
     );
   }
 }

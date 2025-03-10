@@ -1,11 +1,14 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:http/http.dart' as http;
+import 'package:iconsax/iconsax.dart';
 import 'package:major_project/classes/Configuration_Class.dart';
 import 'package:major_project/classes/vendor_modal.dart';
 import 'package:major_project/services/shared_preferences_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MyStorePage extends StatefulWidget {
   MyStorePage({super.key});
@@ -15,30 +18,10 @@ class MyStorePage extends StatefulWidget {
 }
 
 class _MyStorePageState extends State<MyStorePage> {
-  final List<ConfigurationClass> configurationsList = [
-    ConfigurationClass(
-      imagePath: 'assets/images/domin.png',
-      name: "Link a Custom Domain",
-    ),
-    ConfigurationClass(
-      imagePath: 'assets/images/esawa.png',
-      name: "Esewa Configurations",
-    ),
-    ConfigurationClass(
-      imagePath: 'assets/images/khalti.png',
-      name: "Khalti Configurations",
-    ),
-    ConfigurationClass(imagePath: '', name: "Allow Cash on Delivery"),
-    ConfigurationClass(
-      imagePath: 'assets/images/apperance.png',
-      name: "Appearance",
-    ),
-    ConfigurationClass(
-      imagePath: 'assets/images/visitweb.png',
-      name: "Visit Website",
-    ),
-  ];
   late Future<VendorData> _vendorData;
+  bool _allowCashOnDelivery = false; // Add this state variable
+  Color _currentColor =
+      Colors.blue; // Default color, replace with your brand color
 
   @override
   void initState() {
@@ -47,6 +30,7 @@ class _MyStorePageState extends State<MyStorePage> {
   }
 
   Future<VendorData> fetchVendorData() async {
+    print('Hiiiiiiiiiiiiiiiiiii');
     final SharedPreferences sf = await SharedPreferences.getInstance();
     final SharedPreferencesService _prefsService = SharedPreferencesService();
     String? accessToken = await _prefsService.getToken();
@@ -54,11 +38,11 @@ class _MyStorePageState extends State<MyStorePage> {
 
     final response = await http.get(
       Uri.parse(
-        'https://sellsajilo-backend.onrender.com/v1/vendors/get-vendor/$vendorId',
+        'https://sellsajilo-backend.onrender.com/v1/vendors/get-vendor/id/$vendorId',
       ),
       headers: {'Authorization': 'Bearer $accessToken'},
     );
-
+    print(vendorId);
     print(response.body.toString());
     if (response.statusCode == 200) {
       return VendorData.fromJson(json.decode(response.body));
@@ -72,6 +56,35 @@ class _MyStorePageState extends State<MyStorePage> {
     setState(() {
       _vendorData = fetchVendorData();
     });
+  }
+
+  void _pickColor() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Pick a color'),
+          content: SingleChildScrollView(
+            child: ColorPicker(
+              pickerColor: _currentColor,
+              onColorChanged: (color) {
+                setState(() {
+                  _currentColor = color;
+                });
+              },
+            ),
+          ),
+          actions: <Widget>[
+            ElevatedButton(
+              child: Text('Update color'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -116,34 +129,54 @@ class _MyStorePageState extends State<MyStorePage> {
                         borderRadius: BorderRadius.circular(15),
                       ),
                     ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                    child: Stack(
                       children: [
-                        SizedBox(
-                          width: 77,
-                          height: 73,
-                          child: Image.network(vendorData.logo.path),
-                        ),
-                        SizedBox(width: 16),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Text(
-                              vendorData.shopName,
-                              style: Theme.of(context).textTheme.displayMedium,
+                            SizedBox(
+                              width: 77,
+                              height: 73,
+                              child: Image.network(vendorData.logo.path),
                             ),
-                            Text(
-                              vendorData.domains.isNotEmpty
-                                  ? vendorData.domains[0]
-                                  : '',
-                              style: Theme.of(context).textTheme.labelSmall,
-                            ),
-                            Text(
-                              vendorData.phone,
-                              style: Theme.of(context).textTheme.labelSmall,
+                            SizedBox(width: 16),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  vendorData.shopName,
+                                  style:
+                                      Theme.of(context).textTheme.displayMedium,
+                                ),
+                                Text(
+                                  vendorData.domains.isNotEmpty
+                                      ? vendorData.domains[0]
+                                      : '',
+                                  style: Theme.of(context).textTheme.labelSmall,
+                                ),
+                                Text(
+                                  vendorData.phone,
+                                  style: Theme.of(context).textTheme.labelSmall,
+                                ),
+                              ],
                             ),
                           ],
+                        ),
+                        Positioned(
+                          top: -3,
+                          right: -3,
+                          child: Material(
+                            color: Colors.white,
+                            elevation: 2,
+                            shape: CircleBorder(),
+                            child: IconButton(
+                              icon: Icon(Iconsax.edit),
+                              onPressed: () {
+                                // Add your edit button action here
+                              },
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -160,43 +193,187 @@ class _MyStorePageState extends State<MyStorePage> {
                     ),
                   ),
                   SizedBox(height: 10),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    itemCount: configurationsList.length,
-                    itemBuilder: (context, index) {
-                      final item = configurationsList[index];
-                      return Container(
-                        margin: EdgeInsets.symmetric(vertical: 12.0),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 11,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: Row(
-                          mainAxisAlignment:
-                              item.imagePath.isEmpty
-                                  ? MainAxisAlignment.spaceBetween
-                                  : MainAxisAlignment.start,
+                  Container(
+                    margin: EdgeInsets.symmetric(vertical: 12.0),
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Stack(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
-                            if (item.imagePath.isNotEmpty) ...[
-                              Image.asset(
-                                item.imagePath,
-                                height: 25,
-                                width: 25,
-                              ),
-                              SizedBox(width: 16),
-                            ],
-                            Text(item.name),
-                            if (item.imagePath.isEmpty)
-                              Switch(value: true, onChanged: null),
+                            Image.asset(
+                              'assets/images/domin.png',
+                              height: 25,
+                              width: 25,
+                            ),
+                            SizedBox(width: 16),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Link a Custom Domain'),
+                                SizedBox(height: 8),
+                                if (vendorData.domains.isNotEmpty)
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children:
+                                        vendorData.domains.map((domain) {
+                                          return Padding(
+                                            padding: const EdgeInsets.only(
+                                              top: 4.0,
+                                            ),
+                                            child: Text(
+                                              domain,
+                                              style: Theme.of(
+                                                context,
+                                              ).textTheme.labelSmall?.copyWith(
+                                                color: const Color.fromARGB(
+                                                  255,
+                                                  30,
+                                                  117,
+                                                  189,
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        }).toList(),
+                                  ),
+                              ],
+                            ),
                           ],
                         ),
-                      );
-                    },
+                        Positioned(
+                          top: -15,
+                          right: -15,
+                          child: IconButton(
+                            icon: Icon(Icons.add),
+                            onPressed: () {
+                              // Add your button action here
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Container(
+                    margin: EdgeInsets.symmetric(vertical: 12.0),
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: <Widget>[
+                        Image.asset(
+                          'assets/images/khalti.png',
+                          height: 25,
+                          width: 25,
+                        ),
+                        SizedBox(width: 16),
+                        Text('Khalti Configurations'),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Container(
+                    margin: EdgeInsets.symmetric(vertical: 12.0),
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: <Widget>[
+                        SizedBox(width: 16),
+                        Text('Allow Cash on Delivery'),
+                        Spacer(),
+                        Switch(
+                          activeColor: Colors.green,
+                          value: _allowCashOnDelivery,
+                          onChanged: (bool value) {
+                            setState(() {
+                              _allowCashOnDelivery = value;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Container(
+                    margin: EdgeInsets.symmetric(vertical: 12.0),
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: <Widget>[
+                        Image.asset(
+                          'assets/images/apperance.png',
+                          height: 25,
+                          width: 25,
+                        ),
+                        SizedBox(width: 16),
+                        Text('Appearance'),
+                        Spacer(),
+                        GestureDetector(
+                          onTap: _pickColor,
+                          child: Container(
+                            width: 25,
+                            height: 25,
+                            decoration: BoxDecoration(
+                              color: _currentColor,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 10),
+
+                  Container(
+                    margin: EdgeInsets.symmetric(vertical: 12.0),
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: InkWell(
+                      onTap: () async {
+                        if (vendorData.domains.isNotEmpty) {
+                          final Uri url = Uri.parse(vendorData.domains[0]);
+                          if (!await launchUrl(
+                            url,
+                            mode: LaunchMode.externalApplication,
+                          )) {
+                            throw Exception('Could not launch $url');
+                          }
+                        }
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: <Widget>[
+                          Image.asset(
+                            'assets/images/visitweb.png',
+                            height: 25,
+                            width: 25,
+                          ),
+                          SizedBox(width: 16),
+                          Text('Visit Website'),
+                        ],
+                      ),
+                    ),
                   ),
                   InkWell(
                     onTap: () async {

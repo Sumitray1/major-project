@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:major_project/Widgets/product_Card.dart';
+import 'package:major_project/Widgets/product_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ProductPages extends StatefulWidget {
@@ -41,7 +41,6 @@ class _ProductPagesState extends State<ProductPages> {
       List jsonResponse = json.decode(response.body)['products'];
       return jsonResponse.map((product) => Product.fromJson(product)).toList();
     } else {
-      print('Failed to load products');
       throw Exception('Failed to load products');
     }
   }
@@ -65,7 +64,6 @@ class _ProductPagesState extends State<ProductPages> {
       ); // Add "All Categories" option
       return categories;
     } else {
-      print('Failed to load categories');
       throw Exception('Failed to load categories');
     }
   }
@@ -73,6 +71,16 @@ class _ProductPagesState extends State<ProductPages> {
   void _refetchProducts([String? categoryId]) {
     setState(() {
       _data = fetchData(categoryId);
+    });
+  }
+
+  void _removeProduct(String id) {
+    setState(() {
+      _data = _data.then((data) {
+        final products = data['products'] as List<Product>;
+        products.removeWhere((product) => product.id == id);
+        return data;
+      });
     });
   }
 
@@ -91,141 +99,144 @@ class _ProductPagesState extends State<ProductPages> {
             ),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.refresh),
-            onPressed: () => _refetchProducts(_selectedCategoryId),
-          ),
-        ],
       ),
-      body: FutureBuilder<Map<String, dynamic>>(
-        future: _data,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Failed to load data'));
-          } else if (!snapshot.hasData) {
-            return Center(child: Text('No data found'));
-          } else {
-            final categories = snapshot.data!['categories'] as List<Category>;
-            final products = snapshot.data!['products'] as List<Product>;
+      body: RefreshIndicator(
+        onRefresh: () async {
+          _refetchProducts(_selectedCategoryId);
+        },
+        child: FutureBuilder<Map<String, dynamic>>(
+          future: _data,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Failed to load data'));
+            } else if (!snapshot.hasData) {
+              return Center(child: Text('No data found'));
+            } else {
+              final categories = snapshot.data!['categories'] as List<Category>;
+              final products = snapshot.data!['products'] as List<Product>;
 
-            return ListView(
-              padding: EdgeInsets.all(16),
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        style: Theme.of(context).textTheme.bodyMedium,
-                        decoration: InputDecoration(
-                          hintText: 'Search for products',
-                          prefixIcon: Icon(Icons.search),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 12),
-                    IconButton(
-                      onPressed: () {},
-                      icon: Icon(
-                        Icons.filter_alt_outlined,
-                        color: Color(0xFF767676),
-                        size: 35,
-                      ),
-                      style: ButtonStyle(
-                        backgroundColor: WidgetStatePropertyAll<Color>(
-                          Colors.white,
-                        ),
-                        shape: WidgetStatePropertyAll<RoundedRectangleBorder>(
-                          RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                              10,
-                            ), // Border radius
+              return ListView(
+                padding: EdgeInsets.all(16),
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          style: Theme.of(context).textTheme.bodyMedium,
+                          decoration: InputDecoration(
+                            hintText: 'Search for products',
+                            prefixIcon: Icon(Icons.search),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 14),
-                Text(
-                  '${products.length} Products Found',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-                SizedBox(height: 14),
-                SizedBox(
-                  height: 40,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children:
-                        categories.map((category) {
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: TextButton(
-                              onPressed: () {
-                                setState(() {
-                                  _selectedCategoryId = category.id;
-                                });
-                                _refetchProducts(category.id);
-                              },
-                              style: TextButton.styleFrom(
-                                backgroundColor:
-                                    category.id == _selectedCategoryId
-                                        ? Colors.black
-                                        : Colors.transparent,
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 2,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
-                              ),
-                              child: Text(
-                                category.name,
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.displaySmall?.copyWith(
-                                  color:
+                      SizedBox(width: 12),
+                      IconButton(
+                        onPressed: () {},
+                        icon: Icon(
+                          Icons.filter_alt_outlined,
+                          color: Color(0xFF767676),
+                          size: 35,
+                        ),
+                        style: ButtonStyle(
+                          backgroundColor: WidgetStatePropertyAll<Color>(
+                            Colors.white,
+                          ),
+                          shape: WidgetStatePropertyAll<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                10,
+                              ), // Border radius
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 14),
+                  Text(
+                    '${products.length} Products Found',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  SizedBox(height: 14),
+                  SizedBox(
+                    height: 40,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children:
+                          categories.map((category) {
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: TextButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _selectedCategoryId = category.id;
+                                  });
+                                  _refetchProducts(category.id);
+                                },
+                                style: TextButton.styleFrom(
+                                  backgroundColor:
                                       category.id == _selectedCategoryId
-                                          ? Colors.white
-                                          : Colors.black,
+                                          ? Colors.black
+                                          : Colors.transparent,
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 2,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                  ),
+                                ),
+                                child: Text(
+                                  category.name,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.displaySmall?.copyWith(
+                                    color:
+                                        category.id == _selectedCategoryId
+                                            ? Colors.white
+                                            : Colors.black,
+                                  ),
                                 ),
                               ),
+                            );
+                          }).toList(),
+                    ),
+                  ),
+                  SizedBox(height: 14),
+                  GridView.count(
+                    crossAxisSpacing: 15,
+                    mainAxisSpacing: 15,
+                    crossAxisCount: 2,
+                    shrinkWrap: true,
+                    childAspectRatio: 0.75,
+                    physics: NeverScrollableScrollPhysics(),
+                    children:
+                        products.map((product) {
+                          return SizedBox(
+                            child: ProductCard(
+                              name: product.name,
+                              id: product.id,
+                              description: product.description,
+                              price: product.price,
+                              imageLink:
+                                  product.images.isNotEmpty
+                                      ? product.images[0].path
+                                      : '',
+                              onDelete: () => _removeProduct(product.id),
+                              onProductDeleted:
+                                  () => _refetchProducts(_selectedCategoryId),
                             ),
                           );
                         }).toList(),
                   ),
-                ),
-                SizedBox(height: 14),
-                GridView.count(
-                  crossAxisSpacing: 15,
-                  mainAxisSpacing: 15,
-                  crossAxisCount: 2,
-                  shrinkWrap: true,
-                  childAspectRatio: 0.75,
-                  physics: NeverScrollableScrollPhysics(),
-                  children:
-                      products.map((product) {
-                        return SizedBox(
-                          child: ProductCard(
-                            name: product.name,
-                            description: product.description,
-                            price: product.price,
-                            imageLink:
-                                product.images.isNotEmpty
-                                    ? product.images[0].path
-                                    : '',
-                          ),
-                        );
-                      }).toList(),
-                ),
-              ],
-            );
-          }
-        },
+                ],
+              );
+            }
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -239,49 +250,47 @@ class _ProductPagesState extends State<ProductPages> {
   }
 
   void _showAddOptionsDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            'Add Options',
-            style: Theme.of(context).textTheme.displayLarge,
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: Icon(Icons.add),
-                title: Text(
-                  'Add Product',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(fontSize: 18),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/product-details');
-                },
+    _data.then((data) {
+      final categories = data['categories'] as List<Category>;
+      if (categories.length <= 1) {
+        // Only "All Categories" is present
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text(
+                'Add Category',
+                style: Theme.of(context).textTheme.displayLarge,
               ),
-              ListTile(
-                leading: Icon(Icons.category),
-                title: Text(
-                  'Add Categories',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(fontSize: 18),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/categories');
-                  // Navigate to add categories page or perform any action
-                },
+              content: Text(
+                'Please add a category first to add a product.',
+                style: Theme.of(context).textTheme.bodyMedium,
               ),
-            ],
-          ),
+              actions: [
+                TextButton(
+                  child: Text(
+                    'Add Category',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: Colors.blue),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.pushNamed(context, '/categories').then((_) {
+                      _refetchProducts(_selectedCategoryId);
+                    });
+                  },
+                ),
+              ],
+            );
+          },
         );
-      },
-    );
+      } else {
+        Navigator.pushNamed(context, '/product-details').then((_) {
+          _refetchProducts(_selectedCategoryId);
+        });
+      }
+    });
   }
 }
 

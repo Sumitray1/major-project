@@ -102,6 +102,7 @@ class MyApp extends StatelessWidget {
             letterSpacing: 1.56,
           ),
         ),
+        dialogTheme: DialogTheme(backgroundColor: Colors.white),
         // Button Theme
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
@@ -125,7 +126,7 @@ class MyApp extends StatelessWidget {
         '/': (context) => SignupPage(),
         '/dashboard': (context) => HomeScreen(),
         '/categories': (context) => AddCategories(),
-
+        '/product-page': (context) => ProductPages(),
         '/otp-page': (context) {
           final email = ModalRoute.of(context)!.settings.arguments as String;
           return OtpPage(email: email);
@@ -152,8 +153,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final List _pages = [
-    DashboardPage(),
     ProductPages(),
+    AddCategories(),
     OrdersPages(),
     MyStorePage(),
   ];
