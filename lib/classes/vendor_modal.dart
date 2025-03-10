@@ -1,21 +1,21 @@
 import 'image_modal.dart';
 
 class VendorData {
-  final String id;
-  final String shopName;
-  final List<String> domains;
-  final String fullAddress;
-  final String phone;
-  final String location;
-  final List<String> owners;
-  final ImageData logo;
-  final String brandColor;
-  final String facebook;
-  final String instagram;
-  final bool isDeleted;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-  final String khaltiKey;
+  String id;
+  String shopName;
+  List<String> domains;
+  String fullAddress;
+  String phone;
+  String location;
+  List<String> owners;
+  ImageData logo;
+  String brandColor;
+  String facebook;
+  String instagram;
+  bool isDeleted;
+  DateTime createdAt;
+  DateTime updatedAt;
+  String khaltiKey;
 
   VendorData({
     required this.id,

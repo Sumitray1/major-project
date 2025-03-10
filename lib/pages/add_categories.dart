@@ -236,41 +236,14 @@ class _AddCategoriesState extends State<AddCategories> {
               return ListView(
                 padding: EdgeInsets.all(16),
                 children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          style: Theme.of(context).textTheme.bodyMedium,
-                          decoration: InputDecoration(
-                            hintText: 'Search for categories',
-                            prefixIcon: Icon(Icons.search),
-                          ),
-                        ),
+                  Expanded(
+                    child: TextField(
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      decoration: InputDecoration(
+                        hintText: 'Search for categories',
+                        prefixIcon: Icon(Icons.search),
                       ),
-                      SizedBox(width: 12),
-                      IconButton(
-                        onPressed: () {},
-                        icon: Icon(
-                          Icons.filter_alt_outlined,
-                          color: Color(0xFF767676),
-                          size: 35,
-                        ),
-                        style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                            Colors.white,
-                          ),
-                          shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                                RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(
-                                    10,
-                                  ), // Border radius
-                                ),
-                              ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                   SizedBox(height: 14),
                   Text(
@@ -327,7 +300,7 @@ class _AddCategoriesState extends State<AddCategories> {
                 style: Theme.of(context).textTheme.displayLarge,
               ),
               content: SizedBox(
-                height: 350,
+                height: 400,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -340,11 +313,24 @@ class _AddCategoriesState extends State<AddCategories> {
                       child: Center(
                         child:
                             _image == null
-                                ? Image.asset('assets/images/logoUpload.png')
+                                ? Image.asset(
+                                  'assets/images/upload.png',
+                                  width:
+                                      MediaQuery.of(context).size.width *
+                                      0.3, // 30% of screen width
+                                  height:
+                                      MediaQuery.of(context).size.height *
+                                      0.2, // 20% of screen height
+                                  fit: BoxFit.contain,
+                                )
                                 : Image.file(
                                   _image!,
-                                  height: 100,
-                                  width: 100,
+                                  width:
+                                      MediaQuery.of(context).size.width *
+                                      0.3, // Responsive width
+                                  height:
+                                      MediaQuery.of(context).size.height *
+                                      0.2, // Responsive height
                                   fit: BoxFit.cover,
                                 ),
                       ),

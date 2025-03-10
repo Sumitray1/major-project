@@ -19,9 +19,6 @@ class MyStorePage extends StatefulWidget {
 
 class _MyStorePageState extends State<MyStorePage> {
   late Future<VendorData> _vendorData;
-  bool _allowCashOnDelivery = false; // Add this state variable
-  Color _currentColor =
-      Colors.blue; // Default color, replace with your brand color
 
   @override
   void initState() {
@@ -58,7 +55,16 @@ class _MyStorePageState extends State<MyStorePage> {
     });
   }
 
-  void _pickColor() {
+  Color hexToColor(String hex) {
+    hex = hex.replaceAll('#', '');
+    if (hex.length == 6) {
+      hex = 'FF' + hex; // Add alpha value if missing
+    }
+    return Color(int.parse(hex, radix: 16));
+  }
+
+  void _pickColor(String currentColorHex, VendorData vendorData) {
+    Color currentColor = hexToColor(currentColorHex);
     showDialog(
       context: context,
       builder: (context) {
@@ -66,10 +72,10 @@ class _MyStorePageState extends State<MyStorePage> {
           title: Text('Pick a color'),
           content: SingleChildScrollView(
             child: ColorPicker(
-              pickerColor: _currentColor,
+              pickerColor: currentColor,
               onColorChanged: (color) {
                 setState(() {
-                  _currentColor = color;
+                  vendorData.brandColor = color.value.toRadixString(16);
                 });
               },
             ),
@@ -173,7 +179,7 @@ class _MyStorePageState extends State<MyStorePage> {
                             child: IconButton(
                               icon: Icon(Iconsax.edit),
                               onPressed: () {
-                                // Add your edit button action here
+                                Navigator.pushNamed(context, '/edit-shop');
                               },
                             ),
                           ),
@@ -253,7 +259,7 @@ class _MyStorePageState extends State<MyStorePage> {
                           child: IconButton(
                             icon: Icon(Icons.add),
                             onPressed: () {
-                              // Add your button action here
+                              Navigator.pushNamed(context, '/edit-shop');
                             },
                           ),
                         ),
@@ -268,16 +274,36 @@ class _MyStorePageState extends State<MyStorePage> {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(15),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: <Widget>[
-                        Image.asset(
-                          'assets/images/khalti.png',
-                          height: 25,
-                          width: 25,
+                    child: Stack(
+                      children: [
+                        Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: <Widget>[
+                                Image.asset(
+                                  'assets/images/khalti.png',
+                                  height: 25,
+                                  width: 25,
+                                ),
+                                SizedBox(width: 16),
+                                Text('Khalti Configurations'),
+                              ],
+                            ),
+                            SizedBox(height: 8),
+                            Text(vendorData.khaltiKey),
+                          ],
                         ),
-                        SizedBox(width: 16),
-                        Text('Khalti Configurations'),
+                        Positioned(
+                          top: -10,
+                          right: -10,
+                          child: IconButton(
+                            icon: Icon(Iconsax.edit),
+                            onPressed: () {
+                              Navigator.pushNamed(context, '/edit-shop');
+                            },
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -297,12 +323,8 @@ class _MyStorePageState extends State<MyStorePage> {
                         Spacer(),
                         Switch(
                           activeColor: Colors.green,
-                          value: _allowCashOnDelivery,
-                          onChanged: (bool value) {
-                            setState(() {
-                              _allowCashOnDelivery = value;
-                            });
-                          },
+                          value: true,
+                          onChanged: (value) {},
                         ),
                       ],
                     ),
@@ -327,12 +349,13 @@ class _MyStorePageState extends State<MyStorePage> {
                         Text('Appearance'),
                         Spacer(),
                         GestureDetector(
-                          onTap: _pickColor,
+                          onTap:
+                              () => Navigator.pushNamed(context, '/edit-shop'),
                           child: Container(
                             width: 25,
                             height: 25,
                             decoration: BoxDecoration(
-                              color: _currentColor,
+                              color: hexToColor(vendorData.brandColor),
                               shape: BoxShape.circle,
                             ),
                           ),

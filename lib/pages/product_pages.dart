@@ -21,6 +21,8 @@ class _ProductPagesState extends State<ProductPages> {
     _data = fetchData();
   }
 
+  final TextEditingController _searchController = TextEditingController();
+
   Future<Map<String, dynamic>> fetchData([String? categoryId]) async {
     final categories = await fetchCategories();
     final products = await fetchProducts(categoryId);
@@ -31,7 +33,7 @@ class _ProductPagesState extends State<ProductPages> {
     final SharedPreferences sf = await SharedPreferences.getInstance();
     String? vendorId = sf.getString('vendorId');
     String url =
-        'https://sellsajilo-backend.onrender.com/v1/product/all?page=0&limit=20&vendorId=$vendorId';
+        'https://sellsajilo-backend.onrender.com/v1/product/all?page=0&limit=30&vendorId=$vendorId';
     if (categoryId != null && categoryId != 'All') {
       url += '&categoryId=$categoryId';
     }
@@ -41,6 +43,25 @@ class _ProductPagesState extends State<ProductPages> {
       List jsonResponse = json.decode(response.body)['products'];
       return jsonResponse.map((product) => Product.fromJson(product)).toList();
     } else {
+      throw Exception('Failed to load products');
+    }
+  }
+
+  Future<List<Product>> searchProduct([String? name]) async {
+    final SharedPreferences sf = await SharedPreferences.getInstance();
+    String? vendorId = sf.getString('vendorId');
+    String url =
+        'https://sellsajilo-backend.onrender.com/v1/product/all?page=0&limit=30&vendorId=$vendorId&search=$name';
+
+    final response = await http.get(Uri.parse(url));
+
+    if (response.statusCode == 200) {
+      print(response.body);
+      List jsonResponse = json.decode(response.body)['products'];
+      return jsonResponse.map((product) => Product.fromJson(product)).toList();
+    } else {
+      print(response.body);
+
       throw Exception('Failed to load products');
     }
   }
@@ -121,36 +142,33 @@ class _ProductPagesState extends State<ProductPages> {
                 padding: EdgeInsets.all(16),
                 children: [
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Expanded(
                         child: TextField(
                           style: Theme.of(context).textTheme.bodyMedium,
                           decoration: InputDecoration(
-                            hintText: 'Search for products',
+                            hintText: 'Search for products name',
                             prefixIcon: Icon(Icons.search),
                           ),
                         ),
                       ),
-                      SizedBox(width: 12),
-                      IconButton(
-                        onPressed: () {},
-                        icon: Icon(
-                          Icons.filter_alt_outlined,
-                          color: Color(0xFF767676),
-                          size: 35,
+                      SizedBox(width: 10),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white, // White background
+                          borderRadius: BorderRadius.circular(
+                            10,
+                          ), // Rounded corners
                         ),
-                        style: ButtonStyle(
-                          backgroundColor: WidgetStatePropertyAll<Color>(
-                            Colors.white,
-                          ),
-                          shape: WidgetStatePropertyAll<RoundedRectangleBorder>(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                10,
-                              ), // Border radius
-                            ),
-                          ),
+                        child: IconButton(
+                          icon: Icon(
+                            Icons.favorite,
+                            color: Colors.black,
+                          ), // Example icon
+                          onPressed: () {
+                            searchProduct(_searchController.text);
+                            print('hi');
+                          },
                         ),
                       ),
                     ],

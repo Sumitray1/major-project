@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:major_project/Widgets/order_card.dart';
+import 'package:major_project/pages/product_pages.dart';
 import 'package:major_project/services/shared_preferences_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -84,136 +85,114 @@ class _OrdersPagesState extends State<OrdersPages> {
             ),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.refresh),
-            onPressed: () => _refetchOrders(),
-          ),
-        ],
       ),
-      body: ListView(
-        padding: EdgeInsets.all(16),
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: TextField(
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  decoration: InputDecoration(
-                    hintText: 'Search for orders',
-                    prefixIcon: Icon(Icons.search),
-                  ),
-                ),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          _refetchOrders();
+        },
+        child: ListView(
+          padding: EdgeInsets.all(16),
+          children: [
+            TextField(
+              style: Theme.of(context).textTheme.bodyMedium,
+              decoration: InputDecoration(
+                hintText: 'Search for orders',
+                prefixIcon: Icon(Icons.search),
               ),
-              SizedBox(width: 12),
-              IconButton(
-                onPressed: () {},
-                icon: Icon(
-                  Icons.filter_alt_outlined,
-                  color: Color(0xFF767676),
-                  size: 35,
-                ),
-                style: ButtonStyle(
-                  backgroundColor: WidgetStatePropertyAll<Color>(Colors.white),
-                  shape: WidgetStatePropertyAll<RoundedRectangleBorder>(
-                    RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 14),
-          FutureBuilder<List<Order>>(
-            future: _orders,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return Center(child: Text('Failed to load orders'));
-              } else {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${snapshot.hasData ? snapshot.data!.length : 0} Orders Found',
-                      style: Theme.of(context).textTheme.titleSmall,
-                    ),
-                    SizedBox(height: 14),
-                    SizedBox(
-                      height: 40,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        children:
-                            categories.map((category) {
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 8.0),
-                                child: TextButton(
-                                  onPressed:
-                                      () => _refetchOrders(category: category),
-                                  style: TextButton.styleFrom(
-                                    backgroundColor:
-                                        _selectedCategory == category
-                                            ? Colors.black
-                                            : Colors.transparent,
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 2,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10.0),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    category,
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.displaySmall?.copyWith(
-                                      color:
+            ),
+            SizedBox(height: 14),
+            FutureBuilder<List<Order>>(
+              future: _orders,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Failed to load orders'));
+                } else {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${snapshot.hasData ? snapshot.data!.length : 0} Orders Found',
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                      SizedBox(height: 14),
+                      SizedBox(
+                        height: 40,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          children:
+                              categories.map((category) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 8.0),
+                                  child: TextButton(
+                                    onPressed:
+                                        () =>
+                                            _refetchOrders(category: category),
+                                    style: TextButton.styleFrom(
+                                      backgroundColor:
                                           _selectedCategory == category
-                                              ? Colors.white
-                                              : Colors.black,
+                                              ? Colors.black
+                                              : Colors.transparent,
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 2,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                          10.0,
+                                        ),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      category,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.displaySmall?.copyWith(
+                                        color:
+                                            _selectedCategory == category
+                                                ? Colors.white
+                                                : Colors.black,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              );
-                            }).toList(),
+                                );
+                              }).toList(),
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 14),
-                    if (!snapshot.hasData || snapshot.data!.isEmpty)
-                      Center(child: Text('No orders found')),
-                    if (snapshot.hasData && snapshot.data!.isNotEmpty)
-                      Column(
-                        children:
-                            snapshot.data!.map((order) {
-                              return Column(
-                                children: [
-                                  SizedBox(height: 14),
-                                  OrderCard(
-                                    price: order.price,
-                                    name: '${order.fname} ${order.lname}',
-                                    orderStatus: order.bookingStatus,
-                                    qty: order.qty,
-                                    disc: order.product.desc,
-                                    orderId: order.id,
-                                    imageUrl:
-                                        order.product.images.isNotEmpty
-                                            ? order.product.images[0].path
-                                            : '',
-                                  ),
-                                ],
-                              );
-                            }).toList(),
-                      ),
-                  ],
-                );
-              }
-            },
-          ),
-        ],
+                      SizedBox(height: 14),
+                      if (!snapshot.hasData || snapshot.data!.isEmpty)
+                        Center(child: Text('No orders found')),
+                      if (snapshot.hasData && snapshot.data!.isNotEmpty)
+                        Column(
+                          children:
+                              snapshot.data!.map((order) {
+                                return Column(
+                                  children: [
+                                    SizedBox(height: 14),
+                                    OrderCard(
+                                      price: order.price,
+                                      name: '${order.fname} ${order.lname}',
+                                      orderStatus: order.bookingStatus,
+                                      qty: order.qty,
+                                      disc: order.product.desc,
+                                      orderId: order.id,
+                                      imageUrl:
+                                          order.product.images.isNotEmpty
+                                              ? order.product.images[0].path
+                                              : '',
+                                    ),
+                                  ],
+                                );
+                              }).toList(),
+                        ),
+                    ],
+                  );
+                }
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -340,38 +319,6 @@ class Product {
       vendor: json['vendor'],
       category: json['category'],
       unlimitedStocks: json['unlimitedStocks'],
-      isDeleted: json['isDeleted'],
-      createdAt: json['createdAt'],
-      updatedAt: json['updatedAt'],
-    );
-  }
-}
-
-class ProductImage {
-  final String id;
-  final String name;
-  final String type;
-  final String path;
-  final bool isDeleted;
-  final String createdAt;
-  final String updatedAt;
-
-  ProductImage({
-    required this.id,
-    required this.name,
-    required this.type,
-    required this.path,
-    required this.isDeleted,
-    required this.createdAt,
-    required this.updatedAt,
-  });
-
-  factory ProductImage.fromJson(Map<String, dynamic> json) {
-    return ProductImage(
-      id: json['_id'],
-      name: json['name'],
-      type: json['type'],
-      path: json['path'],
       isDeleted: json['isDeleted'],
       createdAt: json['createdAt'],
       updatedAt: json['updatedAt'],

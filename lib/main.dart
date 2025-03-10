@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:major_project/pages/add_categories.dart';
 import 'package:major_project/pages/dashboard_page.dart';
+import 'package:major_project/pages/edit_shopdetails.dart';
 import 'package:major_project/pages/get_started_page,dart.dart';
 import 'package:major_project/pages/my_store_page.dart';
 import 'package:major_project/pages/order_details_page.dart';
@@ -138,6 +140,7 @@ class MyApp extends StatelessWidget {
         },
 
         '/mystore': (context) => MyStorePage(),
+        '/edit-shop': (context) => EditShopPage(),
         '/product-details': (context) => ProductDetailsPage(),
       },
     );
@@ -205,8 +208,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     _selectedPage = 0;
                   });
                 },
-                icon: Icon(Icons.home_filled, size: 30),
-                label: _selectedPage == 0 ? Text('Home') : SizedBox.shrink(),
+                icon: Icon(Iconsax.shopping_bag5, size: 30),
+                label:
+                    _selectedPage == 0 ? Text('Products') : SizedBox.shrink(),
               ),
               TextButton.icon(
                 style: TextButton.styleFrom(
@@ -226,8 +230,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     _selectedPage = 1;
                   });
                 },
-                icon: Icon(Icons.home_repair_service, size: 30),
-                label: _selectedPage == 1 ? Text('Product') : SizedBox.shrink(),
+                icon: Icon(Iconsax.category5, size: 30),
+                label:
+                    _selectedPage == 1 ? Text('Categories') : SizedBox.shrink(),
               ),
               TextButton.icon(
                 style: TextButton.styleFrom(
@@ -248,7 +253,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   });
                 },
 
-                icon: Icon(Icons.shopping_bag, size: 30),
+                icon: Icon(Iconsax.shopping_cart5, size: 30),
                 label: _selectedPage == 2 ? Text('Orders') : SizedBox.shrink(),
               ),
               TextButton.icon(
@@ -269,7 +274,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     _selectedPage = 3;
                   });
                 },
-                icon: Icon(Icons.storefront_rounded, size: 30),
+                icon: Icon(Iconsax.shop5, size: 30),
                 label: _selectedPage == 3 ? Text('Store') : SizedBox.shrink(),
               ),
             ],
