@@ -79,13 +79,23 @@ class OrderCard extends StatelessWidget {
                     children: [
                       SizedBox(height: 8),
                       Text(
-                        '$name',
+                        name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.displaySmall,
                       ),
                       SizedBox(height: 6),
-                      Text(
-                        '$disc',
-                        style: Theme.of(context).textTheme.titleSmall,
+                      SizedBox(
+                        // Replace ConstrainedBox with SizedBox
+                        width:
+                            MediaQuery.of(context).size.width *
+                            0.54, // Control width
+                        child: Text(
+                          disc,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
                       ),
                       SizedBox(height: 6),
                       Text(

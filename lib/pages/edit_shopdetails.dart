@@ -64,7 +64,7 @@ class _EditPageState extends State<EditShopPage> {
           _phoneNumberController.text = vendorData.phone;
           _fbLinkController.text = vendorData.facebook;
           _instaLinkController.text = vendorData.instagram;
-          _kahltikeyController.text = vendorData.khaltiKey;
+          _kahltikeyController.text = vendorData.khaltiKey!;
           imgurl = vendorData.logo.path;
           imgid = vendorData.logo.id;
           _selectedColor = Color(

@@ -28,6 +28,8 @@ class ProductCard extends StatefulWidget {
 }
 
 class _ProductCardState extends State<ProductCard> {
+  bool _isExpanded = false;
+
   Future<void> deleteProduct(BuildContext context) async {
     SharedPreferencesService sf = SharedPreferencesService();
     String? accessToken = await sf.getToken();
@@ -58,9 +60,7 @@ class _ProductCardState extends State<ProductCard> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        double imageHeight =
-            constraints.maxWidth *
-            0.5; // Adjust the image height based on the width
+        double imageHeight = constraints.maxWidth * 0.5;
 
         return Stack(
           children: [
@@ -77,26 +77,28 @@ class _ProductCardState extends State<ProductCard> {
                     Image.network(
                       widget.imageLink,
                       height: imageHeight,
-                      width:
-                          constraints
-                              .maxWidth, // Make the image take the full width
-                      fit:
-                          BoxFit
-                              .cover, // Cover the full width while maintaining aspect ratio
+                      width: constraints.maxWidth,
+                      fit: BoxFit.cover,
                     ),
                     SizedBox(height: 14),
                     Text(
                       widget.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.displaySmall,
                     ),
                     SizedBox(height: 14),
-                    Text(
-                      widget.description,
-                      maxLines: 2,
-                      overflow:
-                          TextOverflow
-                              .ellipsis, // Use ellipsis when text overflows
-                      style: Theme.of(context).textTheme.titleSmall,
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: 0,
+                        maxHeight: 48, // Height for 2 lines of text
+                      ),
+                      child: Text(
+                        widget.description,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
                     ),
                     SizedBox(height: 14),
                     Text(

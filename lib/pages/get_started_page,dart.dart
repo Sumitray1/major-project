@@ -367,7 +367,7 @@ class _GetSartedpageState extends State<GetStartedPage> {
                   SizedBox(height: 8),
 
                   Text(
-                    'https://sassybaneshwor.nebulasansar.com',
+                    'https://${_subDomainController}',
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
 

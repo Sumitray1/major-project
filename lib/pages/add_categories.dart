@@ -20,21 +20,23 @@ class _AddCategoriesState extends State<AddCategories> {
   final TextEditingController _categoryNameController = TextEditingController();
   final SharedPreferencesService _prefsService = SharedPreferencesService();
   late Future<List<Category>> _categoriesFuture;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
-    _categoriesFuture = _fetchCategories();
+    _categoriesFuture = _fetchCategories(_searchQuery);
   }
 
-  Future<List<Category>> _fetchCategories() async {
+  Future<List<Category>> _fetchCategories(String search) async {
     final SharedPreferences sf = await SharedPreferences.getInstance();
     String? vendorId = sf.getString('vendorId');
     final String apiUrl =
-        'https://sellsajilo-backend.onrender.com/v1/category/all/$vendorId';
-
+        'https://sellsajilo-backend.onrender.com/v1/category/all/$vendorId?${search.isNotEmpty ? '&search=$search' : ''}';
     final response = await http.get(Uri.parse(apiUrl));
     if (response.statusCode == 200) {
+      print(apiUrl);
       final responseData = jsonDecode(response.body);
       List<Category> categories =
           (responseData['categories'] as List)
@@ -42,13 +44,15 @@ class _AddCategoriesState extends State<AddCategories> {
               .toList();
       return categories;
     } else {
+      print(apiUrl);
+      print(response.body.toString());
       throw Exception('Failed to load categories');
     }
   }
 
   Future<void> _refreshCategories() async {
     setState(() {
-      _categoriesFuture = _fetchCategories();
+      _categoriesFuture = _fetchCategories(_searchQuery);
     });
   }
 
@@ -204,6 +208,28 @@ class _AddCategoriesState extends State<AddCategories> {
     }
   }
 
+  Widget _buildCategoryGrid(List<Category> categories) {
+    return GridView.count(
+      crossAxisSpacing: 15,
+      mainAxisSpacing: 15,
+      crossAxisCount: 2,
+      shrinkWrap: true,
+      childAspectRatio: 1.04,
+      physics: NeverScrollableScrollPhysics(),
+      children:
+          categories.map((category) {
+            return SizedBox(
+              child: CategoriesCard(
+                id: category.id,
+                imageUrl: category.image.path,
+                name: category.name,
+                key: Key(category.id),
+              ),
+            );
+          }).toList(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -222,58 +248,50 @@ class _AddCategoriesState extends State<AddCategories> {
       ),
       body: RefreshIndicator(
         onRefresh: _refreshCategories,
-        child: FutureBuilder<List<Category>>(
-          future: _categoriesFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Center(child: Text('No categories found'));
-            } else {
-              final categories = snapshot.data!;
-              return ListView(
-                padding: EdgeInsets.all(16),
-                children: [
-                  Expanded(
-                    child: TextField(
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      decoration: InputDecoration(
-                        hintText: 'Search for categories',
-                        prefixIcon: Icon(Icons.search),
-                      ),
+        child: ListView(
+          padding: EdgeInsets.all(16),
+          children: [
+            TextField(
+              controller: _searchController,
+              style: Theme.of(context).textTheme.bodyMedium,
+              decoration: InputDecoration(
+                hintText: 'Search for categories',
+                prefixIcon: Icon(Icons.search),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                  _categoriesFuture = _fetchCategories(value);
+                });
+              },
+            ),
+            SizedBox(height: 14),
+            FutureBuilder<List<Category>>(
+              future: _categoriesFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Center(child: Text('No categories found'));
+                }
+
+                final categories = snapshot.data!;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${categories.length} categories Found',
+                      style: Theme.of(context).textTheme.titleSmall,
                     ),
-                  ),
-                  SizedBox(height: 14),
-                  Text(
-                    '${categories.length} categories Found',
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                  SizedBox(height: 14),
-                  GridView.count(
-                    crossAxisSpacing: 15,
-                    mainAxisSpacing: 15,
-                    crossAxisCount: 2,
-                    shrinkWrap: true,
-                    childAspectRatio: 1.04,
-                    physics: NeverScrollableScrollPhysics(),
-                    children:
-                        categories.map((category) {
-                          return SizedBox(
-                            child: CategoriesCard(
-                              id: category.id,
-                              imageUrl: category.image.path,
-                              name: category.name,
-                              key: Key(category.id),
-                            ),
-                          );
-                        }).toList(),
-                  ),
-                ],
-              );
-            }
-          },
+                    SizedBox(height: 14),
+                    _buildCategoryGrid(categories),
+                  ],
+                );
+              },
+            ),
+          ],
         ),
       ),
       floatingActionButton: FloatingActionButton(

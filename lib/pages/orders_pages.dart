@@ -93,14 +93,6 @@ class _OrdersPagesState extends State<OrdersPages> {
         child: ListView(
           padding: EdgeInsets.all(16),
           children: [
-            TextField(
-              style: Theme.of(context).textTheme.bodyMedium,
-              decoration: InputDecoration(
-                hintText: 'Search for orders',
-                prefixIcon: Icon(Icons.search),
-              ),
-            ),
-            SizedBox(height: 14),
             FutureBuilder<List<Order>>(
               future: _orders,
               builder: (context, snapshot) {

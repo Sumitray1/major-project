@@ -32,8 +32,12 @@ class _ProductPagesState extends State<ProductPages> {
   Future<List<Product>> fetchProducts([String? categoryId]) async {
     final SharedPreferences sf = await SharedPreferences.getInstance();
     String? vendorId = sf.getString('vendorId');
+    String searchText = _searchController.text.trim();
     String url =
         'https://sellsajilo-backend.onrender.com/v1/product/all?page=0&limit=30&vendorId=$vendorId';
+    if (searchText.isNotEmpty) {
+      url += '&search=$searchText';
+    }
     if (categoryId != null && categoryId != 'All') {
       url += '&categoryId=$categoryId';
     }
@@ -43,25 +47,6 @@ class _ProductPagesState extends State<ProductPages> {
       List jsonResponse = json.decode(response.body)['products'];
       return jsonResponse.map((product) => Product.fromJson(product)).toList();
     } else {
-      throw Exception('Failed to load products');
-    }
-  }
-
-  Future<List<Product>> searchProduct([String? name]) async {
-    final SharedPreferences sf = await SharedPreferences.getInstance();
-    String? vendorId = sf.getString('vendorId');
-    String url =
-        'https://sellsajilo-backend.onrender.com/v1/product/all?page=0&limit=30&vendorId=$vendorId&search=$name';
-
-    final response = await http.get(Uri.parse(url));
-
-    if (response.statusCode == 200) {
-      print(response.body);
-      List jsonResponse = json.decode(response.body)['products'];
-      return jsonResponse.map((product) => Product.fromJson(product)).toList();
-    } else {
-      print(response.body);
-
       throw Exception('Failed to load products');
     }
   }
@@ -125,60 +110,39 @@ class _ProductPagesState extends State<ProductPages> {
         onRefresh: () async {
           _refetchProducts(_selectedCategoryId);
         },
-        child: FutureBuilder<Map<String, dynamic>>(
-          future: _data,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text('Failed to load data'));
-            } else if (!snapshot.hasData) {
-              return Center(child: Text('No data found'));
-            } else {
-              final categories = snapshot.data!['categories'] as List<Category>;
-              final products = snapshot.data!['products'] as List<Product>;
+        child: FutureBuilder<List<Category>>(
+          future: fetchCategories(),
+          builder: (context, categorySnapshot) {
+            if (categorySnapshot.hasError) {
+              return Center(child: Text('Failed to load categories'));
+            }
 
-              return ListView(
-                padding: EdgeInsets.all(16),
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          style: Theme.of(context).textTheme.bodyMedium,
-                          decoration: InputDecoration(
-                            hintText: 'Search for products name',
-                            prefixIcon: Icon(Icons.search),
-                          ),
+            final categories = categorySnapshot.data ?? [];
+
+            return ListView(
+              padding: EdgeInsets.all(16),
+              children: [
+                // Search bar
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _searchController,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                        decoration: InputDecoration(
+                          hintText: 'Search for products name',
+                          prefixIcon: Icon(Icons.search),
                         ),
+                        onChanged: (value) {
+                          _refetchProducts(_selectedCategoryId);
+                        },
                       ),
-                      SizedBox(width: 10),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white, // White background
-                          borderRadius: BorderRadius.circular(
-                            10,
-                          ), // Rounded corners
-                        ),
-                        child: IconButton(
-                          icon: Icon(
-                            Icons.favorite,
-                            color: Colors.black,
-                          ), // Example icon
-                          onPressed: () {
-                            searchProduct(_searchController.text);
-                            print('hi');
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 14),
-                  Text(
-                    '${products.length} Products Found',
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                  SizedBox(height: 14),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 14),
+                // Categories list
+                if (categories.isNotEmpty)
                   SizedBox(
                     height: 40,
                     child: ListView(
@@ -223,36 +187,61 @@ class _ProductPagesState extends State<ProductPages> {
                           }).toList(),
                     ),
                   ),
-                  SizedBox(height: 14),
-                  GridView.count(
-                    crossAxisSpacing: 15,
-                    mainAxisSpacing: 15,
-                    crossAxisCount: 2,
-                    shrinkWrap: true,
-                    childAspectRatio: 0.75,
-                    physics: NeverScrollableScrollPhysics(),
-                    children:
-                        products.map((product) {
-                          return SizedBox(
-                            child: ProductCard(
-                              name: product.name,
-                              id: product.id,
-                              description: product.description,
-                              price: product.price,
-                              imageLink:
-                                  product.images.isNotEmpty
-                                      ? product.images[0].path
-                                      : '',
-                              onDelete: () => _removeProduct(product.id),
-                              onProductDeleted:
-                                  () => _refetchProducts(_selectedCategoryId),
-                            ),
-                          );
-                        }).toList(),
-                  ),
-                ],
-              );
-            }
+                SizedBox(height: 14),
+                // Products grid with its own FutureBuilder
+                FutureBuilder<List<Product>>(
+                  future: fetchProducts(_selectedCategoryId),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Container(
+                        height: 200,
+                        child: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+                    if (snapshot.hasError) {
+                      return Center(child: Text('Failed to load products'));
+                    }
+
+                    final products = snapshot.data ?? [];
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${products.length} Products Found',
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        SizedBox(height: 14),
+                        GridView.count(
+                          crossAxisSpacing: 15,
+                          mainAxisSpacing: 15,
+                          crossAxisCount: 2,
+                          shrinkWrap: true,
+                          childAspectRatio: 0.75,
+                          physics: NeverScrollableScrollPhysics(),
+                          children:
+                              products.map((product) {
+                                return ProductCard(
+                                  name: product.name,
+                                  id: product.id,
+                                  description: product.description,
+                                  price: product.price,
+                                  imageLink:
+                                      product.images.isNotEmpty
+                                          ? product.images[0].path
+                                          : '',
+                                  onDelete: () => _removeProduct(product.id),
+                                  onProductDeleted:
+                                      () =>
+                                          _refetchProducts(_selectedCategoryId),
+                                );
+                              }).toList(),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ],
+            );
           },
         ),
       ),

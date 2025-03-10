@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:http/http.dart' as http;
 import 'package:iconsax/iconsax.dart';
-import 'package:major_project/classes/Configuration_Class.dart';
 import 'package:major_project/classes/vendor_modal.dart';
 import 'package:major_project/services/shared_preferences_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,7 +26,6 @@ class _MyStorePageState extends State<MyStorePage> {
   }
 
   Future<VendorData> fetchVendorData() async {
-    print('Hiiiiiiiiiiiiiiiiiii');
     final SharedPreferences sf = await SharedPreferences.getInstance();
     final SharedPreferencesService _prefsService = SharedPreferencesService();
     String? accessToken = await _prefsService.getToken();
@@ -291,7 +289,7 @@ class _MyStorePageState extends State<MyStorePage> {
                               ],
                             ),
                             SizedBox(height: 8),
-                            Text(vendorData.khaltiKey),
+                            Text(vendorData.khaltiKey!),
                           ],
                         ),
                         Positioned(
@@ -375,12 +373,19 @@ class _MyStorePageState extends State<MyStorePage> {
                     child: InkWell(
                       onTap: () async {
                         if (vendorData.domains.isNotEmpty) {
-                          final Uri url = Uri.parse(vendorData.domains[0]);
-                          if (!await launchUrl(
-                            url,
-                            mode: LaunchMode.externalApplication,
-                          )) {
-                            throw Exception('Could not launch $url');
+                          String domain = vendorData.domains[0];
+                          if (!domain.startsWith('http://') &&
+                              !domain.startsWith('https://')) {
+                            domain = 'https://$domain';
+                          }
+                          final Uri url = Uri.parse(domain);
+                          try {
+                            if (!await launchUrl(url)) {
+                              throw Exception('Could not launch $url');
+                            }
+                          } catch (e) {
+                            print('Error: $e');
+                            // Handle the error accordingly
                           }
                         }
                       },

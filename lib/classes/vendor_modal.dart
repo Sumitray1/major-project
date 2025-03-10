@@ -15,7 +15,7 @@ class VendorData {
   bool isDeleted;
   DateTime createdAt;
   DateTime updatedAt;
-  String khaltiKey;
+  String? khaltiKey;
 
   VendorData({
     required this.id,
@@ -32,7 +32,7 @@ class VendorData {
     required this.isDeleted,
     required this.createdAt,
     required this.updatedAt,
-    required this.khaltiKey,
+    this.khaltiKey,
   });
 
   factory VendorData.fromJson(Map<String, dynamic> json) {
@@ -51,7 +51,7 @@ class VendorData {
       isDeleted: json['isDeleted'],
       createdAt: DateTime.parse(json['createdAt']),
       updatedAt: DateTime.parse(json['updatedAt']),
-      khaltiKey: json['khaltikey'],
+      khaltiKey: json['khaltikey'] ?? '',
     );
   }
 }

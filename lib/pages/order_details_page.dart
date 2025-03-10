@@ -5,7 +5,9 @@ import 'package:major_project/Widgets/order_dropdown_Button.dart';
 import 'package:major_project/classes/order_details.dart';
 import 'package:major_project/classes/product_modal.dart';
 import 'package:intl/intl.dart';
+import 'package:major_project/classes/vendor_modal.dart';
 import 'package:major_project/services/shared_preferences_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class OrderDetailsPage extends StatefulWidget {
@@ -29,6 +31,8 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
   }
 
   Future<CombinedData> fetchCombinedData() async {
+    final SharedPreferences sf = await SharedPreferences.getInstance();
+    String? vendorId = sf.getString('vendorId');
     final SharedPreferencesService _prefsService = SharedPreferencesService();
     String? accessToken = await _prefsService.getToken();
     print('Access Token: $accessToken');
@@ -62,8 +66,25 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
     }
 
     final productData = ProductData.fromJson(json.decode(productResponse.body));
+    final vendorResponse = await http.get(
+      Uri.parse(
+        'https://sellsajilo-backend.onrender.com/v1/vendors/get-vendor/id/${vendorId}',
+      ),
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
 
-    return CombinedData(orderData: orderData, productData: productData);
+    if (vendorResponse.statusCode != 200) {
+      print(vendorResponse.body.toString());
+      throw Exception('Failed to load vendor  details');
+    }
+
+    final vendorData = VendorData.fromJson(json.decode(vendorResponse.body));
+
+    return CombinedData(
+      orderData: orderData,
+      productData: productData,
+      vendorData: vendorData,
+    );
   }
 
   Future<void> _refreshCombinedData() async {
@@ -153,6 +174,7 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
               final combinedData = snapshot.data!;
               final orderData = combinedData.orderData;
               final productData = combinedData.productData;
+              final vendorData = combinedData.vendorData;
 
               return ListView(
                 padding: EdgeInsets.all(16),
@@ -207,11 +229,11 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
                   ),
                   SizedBox(height: 14),
                   Text(
-                    "Customer Details",
+                    "Company Details",
                     style: Theme.of(context).textTheme.displaySmall,
                   ),
                   Text(
-                    DateFormat("MMM d, y h:mm a").format(orderData.createdAt),
+                    '${vendorData.shopName}\n${vendorData.fullAddress}\n${vendorData.phone}\n${vendorData.domains[0]}',
                     style: Theme.of(context).textTheme.labelSmall,
                   ),
                   Text(
@@ -290,6 +312,11 @@ class _OrderDetailsPageState extends State<OrderDetailsPage> {
 class CombinedData {
   final OrderDetailsData orderData;
   final ProductData productData;
+  final VendorData vendorData;
 
-  CombinedData({required this.orderData, required this.productData});
+  CombinedData({
+    required this.orderData,
+    required this.productData,
+    required this.vendorData,
+  });
 }
